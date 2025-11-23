@@ -1,4 +1,4 @@
-export type Role = 'model' | 'fan';
+import { Role } from '@/types/user';
 
 type User = {
   role: Role;

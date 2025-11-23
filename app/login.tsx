@@ -29,34 +29,42 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [showDNA, setShowDNA] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
-  const { setUser, setRole, setDnaAccepted } = useAuth();
+  const { setUser, setDnaAccepted } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useThemeCtx();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
-    
+
     if (username === 'Model' && password === '12') {
       setUserByCredentials(username, password);
-      setUser({ username: 'Model' });
-      setRole('model');
-      setDnaAccepted(false);
+      await setUser({
+        id: `user-${Date.now()}`,
+        name: 'Model',
+        role: 'model',
+        createdAt: new Date().toISOString(),
+      });
+      await setDnaAccepted(false);
       setShowDNA(true);
     } else if (username === 'Fan' && password === '34') {
       setUserByCredentials(username, password);
-      setUser({ username: 'Fan' });
-      setRole('fan');
-      setDnaAccepted(false);
+      await setUser({
+        id: `user-${Date.now()}`,
+        name: 'Fan',
+        role: 'fan',
+        createdAt: new Date().toISOString(),
+      });
+      await setDnaAccepted(false);
       setShowDNA(true);
     } else {
       setError('Invalid credentials');
     }
   };
 
-  const handleDNAAccept = () => {
+  const handleDNAAccept = async () => {
     if (!isChecked) return;
-    setDnaAccepted(true);
+    await setDnaAccepted(true);
     setShowDNA(false);
     setIsChecked(false);
     router.replace('/(tabs)');

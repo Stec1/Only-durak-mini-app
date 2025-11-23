@@ -35,34 +35,40 @@ function RootContent() {
 }
 
 function RootLayoutNav() {
-  const { role, isLoading, dnaAccepted } = useAuth();
+  const { user, isLoading, dnaAccepted } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === 'login';
+    const inLogin = segments[0] === 'login';
+    const inRegister = segments[0] === 'register';
     const inTabs = segments[0] === '(tabs)';
 
-    if (!role && !inAuthGroup) {
+    if (!user && !inRegister) {
+      router.replace('/register');
+    } else if (user && !dnaAccepted && !inLogin) {
       router.replace('/login');
-    } else if (role && dnaAccepted && inAuthGroup) {
+    } else if (user && dnaAccepted && (inLogin || inRegister)) {
       router.replace('/(tabs)');
-    } else if (role && !dnaAccepted && inTabs) {
+    } else if (user && !dnaAccepted && inTabs) {
       router.replace('/login');
+    } else if (!user && inTabs) {
+      router.replace('/register');
     }
-  }, [role, segments, isLoading, router, dnaAccepted]);
+  }, [dnaAccepted, isLoading, router, segments, user]);
 
   return (
     <Stack 
-      screenOptions={{ 
+      screenOptions={{
         headerBackTitle: "Back",
         animation: "fade",
         headerShown: false,
         contentStyle: { backgroundColor: '#0E0F12' },
       }}
     >
+      <Stack.Screen name="register" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="deck-constructor" options={{ headerShown: true }} />
