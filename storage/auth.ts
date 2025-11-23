@@ -5,7 +5,14 @@ const STORAGE_KEYS = {
   USER: 'od_user',
   ROLE: 'od_role',
   DNA_ACCEPTED: 'od_dna',
+  PROFILE: 'user_profile',
 } as const;
+
+export type UserProfile = {
+  username: string;
+  role: Role;
+  avatarUri?: string | null;
+};
 
 type StoredSession = {
   user: User | null;
@@ -92,5 +99,40 @@ export async function clearStoredSession(): Promise<void> {
     ]);
   } catch (error) {
     console.error('Error clearing session', error);
+  }
+}
+
+export async function saveUserProfile(profile: UserProfile): Promise<void> {
+  try {
+    const payload = JSON.stringify(profile);
+    await AsyncStorage.setItem(STORAGE_KEYS.PROFILE, payload);
+  } catch (error) {
+    console.error('Error saving user profile', error);
+  }
+}
+
+export async function loadUserProfile(): Promise<UserProfile | null> {
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE);
+    if (!raw) return null;
+
+    try {
+      return JSON.parse(raw) as UserProfile;
+    } catch (parseError) {
+      console.warn('Invalid stored user profile, clearing', parseError);
+      await AsyncStorage.removeItem(STORAGE_KEYS.PROFILE);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error loading user profile', error);
+    return null;
+  }
+}
+
+export async function clearUserProfile(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(STORAGE_KEYS.PROFILE);
+  } catch (error) {
+    console.error('Error clearing user profile', error);
   }
 }

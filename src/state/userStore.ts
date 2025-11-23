@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type UserState = {
@@ -22,12 +22,8 @@ export const useUserStore = create<UserState>()(
       hardReset: () => set({ name: null, avatarUri: null }),
     }),
     {
-      name: 'user_profile',
-      storage: {
-        getItem: (key) => AsyncStorage.getItem(key),
-        setItem: (key, value) => AsyncStorage.setItem(key, value),
-        removeItem: (key) => AsyncStorage.removeItem(key),
-      },
+      name: 'od_user_store',
+      storage: createJSONStorage(() => AsyncStorage),
     }
   )
 );

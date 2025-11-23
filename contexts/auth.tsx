@@ -2,7 +2,15 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import createContextHook from '@nkzw/create-context-hook';
 import { saveAvatar, loadAvatar } from '@/utils/avatarStorage';
 import { useUserStore } from '@/src/state/userStore';
-import { clearStoredSession, loadStoredSession, persistSession, setStoredDnaAccepted } from '@/storage/auth';
+import {
+  clearStoredSession,
+  clearUserProfile,
+  loadStoredSession,
+  loadUserProfile,
+  persistSession,
+  saveUserProfile,
+  setStoredDnaAccepted,
+} from '@/storage/auth';
 import { Role, User } from '@/types/user';
 
 type AuthContextType = {
@@ -44,9 +52,10 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
 
     const loadSession = async () => {
       try {
-        const [{ user: storedUser, dnaAccepted: storedDNA }, avatar] = await Promise.all([
+        const [{ user: storedUser, dnaAccepted: storedDNA }, avatar, storedProfile] = await Promise.all([
           loadStoredSession(),
           loadAvatar(),
+          loadUserProfile(),
         ]);
 
         if (!isMounted) return;
@@ -54,8 +63,14 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
         syncUserState(storedUser);
         setDnaAcceptedState(storedDNA);
 
-        if (avatar) {
-          setAvatarInStore(avatar);
+        if (!storedUser && storedProfile) {
+          setRoleState(storedProfile.role);
+          setNameInStore(storedProfile.username);
+        }
+
+        const resolvedAvatar = avatar ?? storedProfile?.avatarUri ?? null;
+        if (resolvedAvatar) {
+          setAvatarInStore(resolvedAvatar);
         }
       } catch (error) {
         console.error('Error loading session:', error);
@@ -78,10 +93,15 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
       syncUserState(nextUser);
 
       if (nextUser) {
-        await persistSession(nextUser, dnaAccepted);
+        const avatarFromStore = useUserStore.getState().avatarUri ?? null;
+
+        await Promise.all([
+          persistSession(nextUser, dnaAccepted),
+          saveUserProfile({ username: nextUser.name, role: nextUser.role, avatarUri: avatarFromStore }),
+        ]);
       } else {
         setDnaAcceptedState(false);
-        await clearStoredSession();
+        await Promise.all([clearStoredSession(), clearUserProfile()]);
         useUserStore.getState().hardReset();
       }
     },
@@ -105,7 +125,11 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
           };
 
       syncUserState(updatedUser);
-      await persistSession(updatedUser, dnaAccepted);
+      const avatarFromStore = useUserStore.getState().avatarUri ?? null;
+      await Promise.all([
+        persistSession(updatedUser, dnaAccepted),
+        saveUserProfile({ username: updatedUser.name, role: updatedUser.role, avatarUri: avatarFromStore }),
+      ]);
     },
     [dnaAccepted, setUser, syncUserState, user]
   );
@@ -127,10 +151,37 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
     try {
       const savedUri = await saveAvatar(uri);
       setAvatarInStore(savedUri);
+
+      if (user) {
+        await saveUserProfile({ username: user.name, role: user.role, avatarUri: savedUri });
+      }
     } catch (error) {
       console.error('Error saving avatar:', error);
     }
-  }, [setAvatarInStore]);
+  }, [setAvatarInStore, user]);
+
+  const registerUser = useCallback(
+    async (name: string, role: Role) => {
+      const trimmedName = name.trim();
+      const newUser: User = {
+        id: `user-${Date.now()}`,
+        name: trimmedName,
+        role,
+        createdAt: new Date().toISOString(),
+      };
+
+      syncUserState(newUser);
+      setDnaAcceptedState(true);
+      const avatarFromStore = useUserStore.getState().avatarUri ?? null;
+      await Promise.all([
+        persistSession(newUser, true),
+        saveUserProfile({ username: newUser.name, role: newUser.role, avatarUri: avatarFromStore }),
+      ]);
+
+      return newUser;
+    },
+    [setDnaAcceptedState, syncUserState]
+  );
 
   const registerUser = useCallback(
     async (name: string, role: Role) => {
@@ -153,7 +204,7 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
 
   const logout = useCallback(async () => {
     try {
-      await clearStoredSession();
+      await Promise.all([clearStoredSession(), clearUserProfile()]);
       setUserState(null);
       setRoleState(null);
       setDnaAcceptedState(false);
