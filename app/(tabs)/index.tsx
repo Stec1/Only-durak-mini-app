@@ -1,0 +1,794 @@
+import { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, Platform, TouchableOpacity, Modal, Pressable, FlatList, Alert, TextInput } from "react-native";
+import * as Haptics from 'expo-haptics';
+import { User, Users, LogOut, Package, Settings, ChevronRight, RotateCcw, Trophy, TrendingUp, Flame, Info, Lightbulb } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '@/contexts/auth';
+import { useTokens } from '@/src/contexts/theme';
+import { useRouter } from 'expo-router';
+import { getUser, isModel as checkIsModel } from '@/store/user';
+import { loadDeck, saveDeck, DECK_KEYS, type DeckMap } from '@/utils/deck';
+import { getDecks, saveDeck as updateDeck, deleteDeck } from '@/storage/decks';
+import { Deck } from '@/types/deck';
+import { DeckThumb } from '@/components/DeckThumb';
+import { tokens } from '@/src/theme/tokens';
+import { colors, spacing, radius } from '@/constants/tokens';
+import { typography } from '@/constants/typography';
+
+import Capsule from '@/components/Capsule';
+import GlassCard from '@/components/GlassCard';
+import SolidCard from '@/components/SolidCard';
+import Divider from '@/components/Divider';
+import ProfileAvatar from '@/components/ProfileAvatar';
+import StatCard from '@/components/StatCard';
+import StatsAccordion from '@/src/components/profile/StatsAccordion';
+import EarningsChart from '@/src/components/profile/EarningsChart';
+import JokersPanel from '@/src/components/profile/JokersPanel';
+import GamesStatsPanel from '@/src/components/profile/GamesStatsPanel';
+import { mockEarnings, mockSummary, mockRecent, mockJokers } from '@/src/data/profileMocks';
+import ThemePickerSheet from '@/src/components/ThemePickerSheet';
+
+
+
+
+
+export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
+  const themeTokens = useTokens();
+  const { user, role, logout } = useAuth();
+  const router = useRouter();
+  const { nickname } = getUser();
+  const isModel = user?.username === 'Model';
+  const [showSettingsSheet, setShowSettingsSheet] = useState(false);
+  const [deck, setDeck] = useState<DeckMap | null>(null);
+  const [deckProgress, setDeckProgress] = useState({ filled: 0, total: DECK_KEYS.length });
+  const [decks, setDecks] = useState<Deck[]>([]);
+  const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
+  const [newDeckName, setNewDeckName] = useState('');
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<'games' | 'earnings' | 'jokers' | null>(null);
+  const [showThemePicker, setShowThemePicker] = useState(false);
+
+  useEffect(() => {
+    if (!role) {
+      router.replace('/login');
+    }
+  }, [role, router]);
+
+  useEffect(() => {
+    if (checkIsModel()) {
+      loadDeck().then((loaded) => {
+        setDeck(loaded);
+        const filled = Object.values(loaded).filter((uri) => uri !== null).length;
+        setDeckProgress({ filled, total: DECK_KEYS.length });
+      });
+      const modelId = user?.username || 'Model';
+      getDecks(modelId).then(setDecks);
+    }
+  }, [user?.username]);
+
+  const handleLogout = async () => {
+    setShowSettingsSheet(false);
+    await logout();
+    router.replace('/login');
+  };
+
+  const settingsCardBgWithOpacity = themeTokens.cardBg + 'F0';
+
+  const handleResetDeck = () => {
+    Alert.alert(
+      'Reset Deck',
+      'Are you sure you want to reset your custom deck? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            const emptyDeck = Object.fromEntries(DECK_KEYS.map(k => [k, null])) as DeckMap;
+            await saveDeck(emptyDeck);
+            setDeck(emptyDeck);
+            setDeckProgress({ filled: 0, total: DECK_KEYS.length });
+            Alert.alert('Success', 'Your deck has been reset.');
+          },
+        },
+      ]
+    );
+  };
+
+  const loadDecks = async () => {
+    const modelId = user?.username || 'Model';
+    const loadedDecks = await getDecks(modelId);
+    setDecks(loadedDecks);
+  };
+
+  const handleDeckSettings = (deck: Deck) => {
+    Alert.alert(
+      'Deck Settings',
+      deck.name,
+      [
+        {
+          text: 'Rename',
+          onPress: () => {
+            setSelectedDeck(deck);
+            setNewDeckName(deck.name);
+            setRenameModalVisible(true);
+          },
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Delete Deck',
+              `Are you sure you want to delete "${deck.name}"? This cannot be undone.`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: async () => {
+                    const modelId = user?.username || 'Model';
+                    await deleteDeck(modelId, deck.id);
+                    await loadDecks();
+                    Alert.alert('Success', 'Deck deleted successfully.');
+                  },
+                },
+              ]
+            );
+          },
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  const handleRenameDeck = async () => {
+    if (!selectedDeck || !newDeckName.trim()) return;
+
+    const modelId = user?.username || 'Model';
+    const updatedDeckData: Deck = {
+      ...selectedDeck,
+      name: newDeckName.trim(),
+      updatedAt: Date.now(),
+    };
+
+    await updateDeck(modelId, updatedDeckData);
+    await loadDecks();
+    setRenameModalVisible(false);
+    setSelectedDeck(null);
+    setNewDeckName('');
+  };
+  
+  return (
+    <View style={[styles.container, { backgroundColor: themeTokens.bg }]}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + tokens.spacing.xl, paddingBottom: insets.bottom + tokens.spacing['2xl'] }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.headerContainer}>
+          <View style={styles.settingsButtonContainer}>
+            <TouchableOpacity
+              style={styles.settingsButton}
+              onPress={() => setShowSettingsSheet(true)}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Settings color={tokens.text.secondary} size={24} strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
+
+          <ProfileAvatar
+            uri={avatarUri}
+            onImagePicked={setAvatarUri}
+            size={144}
+          />
+
+          <Text style={styles.displayName}>{nickname}</Text>
+          <Text style={styles.accountType}>{isModel ? 'Model Account' : 'Fan Account'}</Text>
+        </View>
+
+        {isModel ? (
+          <View style={styles.accordionsContainer}>
+            <StatsAccordion
+              title="Games Played"
+              value={mockSummary.total}
+              icon={<Trophy color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+              isOpen={openAccordion === 'games'}
+              onToggle={() => setOpenAccordion(openAccordion === 'games' ? null : 'games')}
+            >
+              <GamesStatsPanel summary={mockSummary} recent={mockRecent} />
+            </StatsAccordion>
+
+            <StatsAccordion
+              title="Earnings"
+              value={mockEarnings.total}
+              icon={<TrendingUp color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+              isOpen={openAccordion === 'earnings'}
+              onToggle={() => setOpenAccordion(openAccordion === 'earnings' ? null : 'earnings')}
+            >
+              <EarningsChart 
+                data={mockEarnings.series}
+                total={mockEarnings.total}
+                week={mockEarnings.week}
+                month={mockEarnings.month}
+              />
+            </StatsAccordion>
+
+            <StatsAccordion
+              title="Joker NFTs"
+              value={mockJokers.length}
+              icon={<Flame color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+              isOpen={openAccordion === 'jokers'}
+              onToggle={() => setOpenAccordion(openAccordion === 'jokers' ? null : 'jokers')}
+            >
+              <JokersPanel 
+                jokers={mockJokers}
+                onOpenCollection={() => {}}
+              />
+            </StatsAccordion>
+          </View>
+        ) : (
+          <View style={styles.statsRow}>
+            <StatCard value={6} caption="GAMES PLAYED" />
+            <StatCard value={120} caption="CREDITS" />
+            <StatCard value={1} caption="NFTs WON" />
+          </View>
+        )}
+
+
+
+        {checkIsModel() && (
+          <>
+            <Text style={styles.sectionTitle}>My Deck</Text>
+            
+            {decks.length > 0 ? (
+              <FlatList
+                data={decks}
+                keyExtractor={(d) => d.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingVertical: 12 }}
+                renderItem={({ item }) => (
+                  <Pressable onPress={() => router.push(`/decks/${item.id}` as any)} key={item.id}>
+                    <DeckThumb 
+                      name={item.name} 
+                      backUri={item.backUri}
+                      onPressSettings={() => handleDeckSettings(item)}
+                    />
+                  </Pressable>
+                )}
+              />
+            ) : (
+              <GlassCard style={styles.deckCard}>
+                <Text style={styles.deckHint}>No decks yet. Create your first deck!</Text>
+              </GlassCard>
+            )}
+
+            <Divider style={styles.divider} />
+          </>
+        )}
+
+        <Text style={styles.sectionTitle}>Actions</Text>
+
+        {checkIsModel() ? (
+          <>
+            <GlassCard style={styles.actionCard}>
+              <TouchableOpacity 
+                style={styles.actionButton} 
+                activeOpacity={0.7}
+                onPress={() => router.push('/deck-constructor')}
+              >
+                <View style={styles.actionContent}>
+                  <View style={styles.actionLeft}>
+                    <View style={styles.actionIconWrapper}>
+                      <Package color={colors.primary} size={24} strokeWidth={2.5} />
+                    </View>
+                    <Text style={styles.actionTitle}>Open Deck Constructor</Text>
+                  </View>
+                  <ChevronRight color={colors.text} size={20} strokeWidth={2.5} />
+                </View>
+              </TouchableOpacity>
+            </GlassCard>
+
+            <GlassCard style={styles.actionCard}>
+              <TouchableOpacity 
+                style={styles.actionButton} 
+                activeOpacity={0.7}
+                onPress={async () => {
+                  if (Platform.OS !== 'web') {
+                    try {
+                      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    } catch {}
+                  }
+                  router.push('/game/create');
+                }}
+              >
+                <View style={styles.actionContent}>
+                  <View style={styles.actionLeft}>
+                    <View style={styles.actionIconWrapper}>
+                      <Users color={colors.primary} size={24} strokeWidth={2.5} />
+                    </View>
+                    <Text style={styles.actionTitle}>Create Game Room</Text>
+                  </View>
+                  <ChevronRight color={colors.text} size={20} strokeWidth={2.5} />
+                </View>
+              </TouchableOpacity>
+            </GlassCard>
+          </>
+        ) : (
+          <>
+            <GlassCard style={styles.actionCard}>
+              <TouchableOpacity 
+                style={styles.actionButton} 
+                activeOpacity={0.7}
+              >
+                <View style={styles.actionContent}>
+                  <View style={styles.actionLeft}>
+                    <View style={styles.actionIconWrapper}>
+                      <Users color={colors.primary} size={24} strokeWidth={2.5} />
+                    </View>
+                    <Text style={styles.actionTitle}>Join Model Room</Text>
+                  </View>
+                  <ChevronRight color={colors.text} size={20} strokeWidth={2.5} />
+                </View>
+              </TouchableOpacity>
+            </GlassCard>
+          </>
+        )}
+
+        {checkIsModel() && deckProgress.filled > 0 && (
+          <>
+            <View style={{ height: spacing.md }} />
+            <TouchableOpacity 
+              style={styles.resetButton}
+              activeOpacity={0.7}
+              onPress={handleResetDeck}
+            >
+              <RotateCcw color={colors.danger} size={18} strokeWidth={2.5} />
+              <Text style={styles.resetText}>Reset Deck</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        <View style={styles.footerHint}>
+          <Text style={styles.hintText}>
+            Win exclusive Joker NFTs by playing with creators.
+          </Text>
+        </View>
+      </ScrollView>
+
+      <Modal
+        visible={showSettingsSheet}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSettingsSheet(false)}
+      >
+        <Pressable 
+          style={styles.sheetBackdrop}
+          onPress={() => setShowSettingsSheet(false)}
+        >
+          <View style={[styles.sheetContainer, { paddingBottom: insets.bottom + tokens.spacing.lg }]}>
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              <View style={[styles.solidCardOverride, { backgroundColor: settingsCardBgWithOpacity, borderColor: themeTokens.border }]}>
+                <View style={styles.sheetHeader}>
+                  <Text style={styles.sheetTitle}>Settings</Text>
+                </View>
+
+                <Divider />
+
+                <TouchableOpacity 
+                  style={styles.sheetOption}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setShowSettingsSheet(false);
+                    setTimeout(() => {
+                      setShowThemePicker(true);
+                    }, 150);
+                  }}
+                >
+                  <View style={[styles.themeIcon, { backgroundColor: themeTokens.cardBg, borderColor: themeTokens.border }]}>
+                    <Lightbulb color={themeTokens.text} size={18} strokeWidth={2.5} />
+                  </View>
+                  <Text style={styles.sheetOptionText}>Appearance</Text>
+                </TouchableOpacity>
+
+                <Divider />
+
+                <TouchableOpacity 
+                  style={styles.sheetOption}
+                  activeOpacity={0.7}
+                  disabled
+                >
+                  <User color={colors.textDim} size={24} strokeWidth={2.5} />
+                  <Text style={[styles.sheetOptionText, styles.disabledText]}>Edit Profile</Text>
+                  <Text style={styles.disabledBadge}>Disabled</Text>
+                </TouchableOpacity>
+
+                <Divider />
+
+                <TouchableOpacity 
+                  style={styles.sheetOption}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setShowSettingsSheet(false);
+                    router.push('/about');
+                  }}
+                >
+                  <Info color={colors.text} size={24} strokeWidth={2.5} />
+                  <Text style={styles.sheetOptionText}>About</Text>
+                </TouchableOpacity>
+
+                <Divider />
+
+                <TouchableOpacity 
+                  style={styles.sheetOption}
+                  activeOpacity={0.7}
+                  onPress={handleLogout}
+                >
+                  <LogOut color={colors.danger} size={24} strokeWidth={2.5} />
+                  <Text style={[styles.sheetOptionText, { color: colors.danger }]}>Logout</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        visible={renameModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRenameModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setRenameModalVisible(false)}
+        >
+          <View style={styles.renameModalContainer}>
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              <GlassCard padding={tokens.spacing.lg}>
+                <Text style={styles.modalTitle}>Rename Deck</Text>
+                <TextInput
+                  value={newDeckName}
+                  onChangeText={setNewDeckName}
+                  placeholder="Enter new name"
+                  placeholderTextColor="#8A8F98"
+                  style={styles.textInput}
+                  autoFocus
+                />
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.modalButtonCancel]}
+                    onPress={() => setRenameModalVisible(false)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.modalButtonSave]}
+                    onPress={handleRenameDeck}
+                    activeOpacity={0.7}
+                    disabled={!newDeckName.trim()}
+                  >
+                    <Text style={[styles.modalButtonTextSave, !newDeckName.trim() && { opacity: 0.5 }]}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </GlassCard>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <ThemePickerSheet
+        visible={showThemePicker}
+        onClose={() => setShowThemePicker(false)}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: tokens.spacing.lg,
+  },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: tokens.spacing['2xl'],
+    position: 'relative',
+  },
+  settingsButtonContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 10,
+  },
+  settingsButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: tokens.card.radius,
+    backgroundColor: tokens.card.bg,
+    borderWidth: 1,
+    borderColor: tokens.card.border,
+  },
+  displayName: {
+    ...tokens.typography.h1,
+    color: tokens.text.primary,
+    marginTop: tokens.spacing.lg,
+    textAlign: 'center',
+  },
+  accountType: {
+    ...tokens.typography.caption,
+    color: tokens.text.secondary,
+    marginTop: tokens.spacing.xs,
+    textAlign: 'center',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: tokens.spacing.md,
+    marginBottom: tokens.spacing.xl,
+  },
+  divider: {
+    marginVertical: tokens.spacing.xl,
+  },
+  sectionTitle: {
+    ...tokens.typography.h2,
+    color: tokens.text.primary,
+    marginTop: tokens.spacing.lg,
+    marginBottom: tokens.spacing.md,
+  },
+
+  actionCard: {
+    marginBottom: spacing.sm,
+    padding: 0,
+  },
+  actionButton: {
+    minHeight: 48,
+  },
+  actionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  actionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    flex: 1,
+  },
+  actionIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surface2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionTitle: {
+    ...typography.subtitle,
+  },
+  disabledText: {
+    color: colors.textDim,
+  },
+  footerHint: {
+    marginTop: spacing.xl,
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
+  },
+  hintText: {
+    ...typography.meta,
+    textAlign: 'center',
+  },
+  sheetBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'flex-end',
+  },
+  sheetContainer: {
+    paddingHorizontal: spacing.lg,
+  },
+  sheetHeader: {
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+  },
+  sheetTitle: {
+    ...typography.h2,
+  },
+  sheetOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+  },
+  sheetOptionText: {
+    ...typography.subtitle,
+    flex: 1,
+  },
+  disabledBadge: {
+    ...typography.meta,
+    fontSize: 11,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    backgroundColor: colors.surface2,
+    borderRadius: radius.sm,
+    overflow: 'hidden',
+  },
+  deckCard: {
+    marginBottom: spacing.md,
+  },
+  deckHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  deckTitle: {
+    ...typography.subtitle,
+    fontSize: 18,
+  },
+  progressBadge: {
+    backgroundColor: colors.surface2,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+  },
+  progressText: {
+    ...typography.meta,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  progressBarContainer: {
+    marginBottom: spacing.md,
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: colors.surface2,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+  },
+  deckPreview: {
+    marginTop: spacing.sm,
+  },
+  deckPreviewContent: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  miniCard: {
+    width: 50,
+    height: 70,
+    borderRadius: radius.sm,
+    overflow: 'hidden',
+    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  miniCardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  miniCardMore: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniCardMoreText: {
+    ...typography.meta,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  deckHint: {
+    ...typography.meta,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
+  resetButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    backgroundColor: 'rgba(255, 77, 122, 0.05)',
+  },
+  resetText: {
+    ...typography.subtitle,
+    color: colors.danger,
+    fontSize: 15,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  renameModalContainer: {
+    width: '86%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    ...typography.h2,
+    fontSize: 20,
+    marginBottom: spacing.md,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    color: colors.text,
+    fontSize: 16,
+    backgroundColor: colors.surface,
+    marginBottom: spacing.md,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  modalButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.md,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: 'transparent',
+  },
+  modalButtonSave: {
+    backgroundColor: colors.primary,
+  },
+  modalButtonTextCancel: {
+    ...typography.subtitle,
+    color: colors.textDim,
+    fontSize: 15,
+  },
+  modalButtonTextSave: {
+    ...typography.subtitle,
+    color: colors.bg,
+    fontSize: 15,
+    fontWeight: '700' as const,
+  },
+  accordionsContainer: {
+    marginBottom: tokens.spacing.xl,
+  },
+  themeIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  solidCardOverride: {
+    borderRadius: 24,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
+  },
+});
