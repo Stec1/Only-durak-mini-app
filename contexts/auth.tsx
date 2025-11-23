@@ -183,6 +183,25 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
     [setDnaAcceptedState, syncUserState]
   );
 
+  const registerUser = useCallback(
+    async (name: string, role: Role) => {
+      const trimmedName = name.trim();
+      const newUser: User = {
+        id: `user-${Date.now()}`,
+        name: trimmedName,
+        role,
+        createdAt: new Date().toISOString(),
+      };
+
+      syncUserState(newUser);
+      setDnaAcceptedState(true);
+      await persistSession(newUser, true);
+
+      return newUser;
+    },
+    [syncUserState]
+  );
+
   const logout = useCallback(async () => {
     try {
       await Promise.all([clearStoredSession(), clearUserProfile()]);
