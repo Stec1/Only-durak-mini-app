@@ -34,34 +34,46 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
   const modelAvatar = avatarUri;
 
   useEffect(() => {
-    loadSession();
-  }, []);
+    let isMounted = true;
 
-  const loadSession = async () => {
-    try {
-      const storedRole = await AsyncStorage.getItem('od_role');
-      const storedDNA = await AsyncStorage.getItem('od_dna');
-      
-      if (storedRole && storedDNA === 'true') {
-        const parsedRole = storedRole as Role;
-        setRoleState(parsedRole);
-        setDnaAcceptedState(true);
-        const username = parsedRole === 'model' ? 'Model' : parsedRole === 'fan' ? 'Fan' : '';
-        if (username) {
-          setUserState({ username });
+    const loadSession = async () => {
+      try {
+        const [storedRole, storedDNA, avatar] = await Promise.all([
+          AsyncStorage.getItem('od_role'),
+          AsyncStorage.getItem('od_dna'),
+          loadAvatar(),
+        ]);
+
+        if (!isMounted) return;
+
+        if (storedRole && storedDNA === 'true') {
+          const parsedRole = storedRole as Role;
+          setRoleState(parsedRole);
+          setDnaAcceptedState(true);
+          const username = parsedRole === 'model' ? 'Model' : parsedRole === 'fan' ? 'Fan' : '';
+          if (username) {
+            setUserState({ username });
+          }
+        }
+
+        if (avatar) {
+          setAvatarInStore(avatar);
+        }
+      } catch (error) {
+        console.error('Error loading session:', error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
         }
       }
-      
-      const avatar = await loadAvatar();
-      if (avatar) {
-        setAvatarInStore(avatar);
-      }
-    } catch (error) {
-      console.error('Error loading session:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    loadSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [setAvatarInStore]);
 
   const setUser = useCallback((user: User | null) => {
     setUserState(user);
