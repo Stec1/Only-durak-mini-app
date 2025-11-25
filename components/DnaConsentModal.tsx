@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import ODModal from '@/components/ODModal';
 import { colors, spacing, radius } from '@/constants/tokens';
@@ -46,13 +47,8 @@ export default function DnaConsentModal({ visible, onAgree, onCancel }: Props) {
         <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onCancel} activeOpacity={0.85}>
           <Text style={[styles.buttonText, styles.cancelText]}>Cancel</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.confirmButton, !confirmed && styles.disabledButton]}
-          onPress={onAgree}
-          activeOpacity={0.9}
-          disabled={!confirmed}
-        >
-          <Text style={[styles.buttonText, styles.confirmText]}>Accept &amp; continue</Text>
+        <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={onAgree} activeOpacity={0.9}>
+          <Text style={[styles.buttonText, styles.confirmText]}>I agree</Text>
         </TouchableOpacity>
       </View>
     </ODModal>

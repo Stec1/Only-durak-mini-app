@@ -144,15 +144,11 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
     async (accepted: boolean) => {
       setDnaAcceptedState(accepted);
 
-      const tasks: Promise<void>[] = [];
-
       if (user) {
-        tasks.push(persistSession(user, accepted));
+        await persistSession(user, accepted);
+      } else {
+        await setStoredDnaAccepted(accepted);
       }
-
-      tasks.push(setStoredDnaAccepted(accepted));
-
-      await Promise.all(tasks);
     },
     [user]
   );
@@ -171,7 +167,7 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
   }, [setAvatarInStore, user]);
 
   const registerUser = useCallback(
-    async (name: string, role: Role, password: string): Promise<User> => {
+    async (name: string, role: Role, password: string) => {
       const trimmedName = name.trim();
 
       if (!trimmedName) {
@@ -221,7 +217,7 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
   );
 
   const login = useCallback(
-    async (name: string, password: string): Promise<User> => {
+    async (name: string, password: string) => {
       const trimmedName = name.trim();
 
       if (!trimmedName) {
