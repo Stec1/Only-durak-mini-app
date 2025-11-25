@@ -1,18 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Role, User } from '@/types/user';
+import { Role, StoredAccount, User, UserProfile } from '@/types/user';
 
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   USER: 'od_user',
   ROLE: 'od_role',
   DNA_ACCEPTED: 'od_dna',
   PROFILE: 'user_profile',
+  ACCOUNTS: 'od_accounts',
 } as const;
-
-export type UserProfile = {
-  username: string;
-  role: Role;
-  avatarUri?: string | null;
-};
 
 type StoredSession = {
   user: User | null;
@@ -135,4 +130,50 @@ export async function clearUserProfile(): Promise<void> {
   } catch (error) {
     console.error('Error clearing user profile', error);
   }
+}
+
+export async function loadAccounts(): Promise<StoredAccount[]> {
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEYS.ACCOUNTS);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw) as StoredAccount[];
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+
+    return [];
+  } catch (error) {
+    console.warn('Failed to load accounts, clearing invalid data', error);
+    await AsyncStorage.removeItem(STORAGE_KEYS.ACCOUNTS);
+    return [];
+  }
+}
+
+export async function saveAccounts(accounts: StoredAccount[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
+  } catch (error) {
+    console.error('Error saving accounts', error);
+  }
+}
+
+export async function addAccount(newAccount: StoredAccount): Promise<void> {
+  const accounts = await loadAccounts();
+  const exists = accounts.some(
+    (account) => account.username.trim().toLowerCase() === newAccount.username.trim().toLowerCase()
+  );
+
+  if (exists) {
+    throw new Error('User with this name already exists');
+  }
+
+  accounts.push(newAccount);
+  await saveAccounts(accounts);
+}
+
+export async function findAccount(username: string): Promise<StoredAccount | null> {
+  const accounts = await loadAccounts();
+  const normalized = username.trim().toLowerCase();
+  return accounts.find((account) => account.username.trim().toLowerCase() === normalized) ?? null;
 }

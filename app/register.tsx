@@ -83,10 +83,18 @@ export default function RegisterScreen() {
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <HoloButton
-            title="Створити акаунт"
+            title="CREATE ACCOUNT"
             onPress={handleSubmit}
             style={styles.submitButton}
           />
+
+          <TouchableOpacity
+            onPress={() => router.replace('/login')}
+            style={styles.linkButton}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.linkText, { color: theme.textSecondary }]}>Already have an account? Log in</Text>
+          </TouchableOpacity>
         </SolidCard>
       </View>
     </TouchableWithoutFeedback>

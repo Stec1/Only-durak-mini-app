@@ -3,15 +3,17 @@ import createContextHook from '@nkzw/create-context-hook';
 import { saveAvatar, loadAvatar } from '@/utils/avatarStorage';
 import { useUserStore } from '@/src/state/userStore';
 import {
+  addAccount,
   clearStoredSession,
   clearUserProfile,
+  findAccount,
   loadStoredSession,
   loadUserProfile,
   persistSession,
   saveUserProfile,
   setStoredDnaAccepted,
 } from '@/storage/auth';
-import { Role, User } from '@/types/user';
+import { Role, StoredAccount, User } from '@/types/user';
 
 type AuthContextType = {
   user: User | null;
@@ -23,7 +25,8 @@ type AuthContextType = {
   setRole: (role: Role | null) => Promise<void>;
   setDnaAccepted: (accepted: boolean) => Promise<void>;
   setModelAvatar: (uri: string) => Promise<void>;
-  registerUser: (name: string, role: Role) => Promise<User>;
+  registerUser: (name: string, role: Role, password: string) => Promise<User>;
+  login: (name: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
 };
 
@@ -36,6 +39,7 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
   const avatarUri = useUserStore((state) => state.avatarUri);
   const setAvatarInStore = useUserStore((state) => state.setAvatar);
   const setNameInStore = useUserStore((state) => state.setName);
+  const setRoleInStore = useUserStore((state) => state.setRole);
   const modelAvatar = avatarUri;
 
   const syncUserState = useCallback(
@@ -43,8 +47,9 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
       setUserState(nextUser);
       setRoleState(nextUser?.role ?? null);
       setNameInStore(nextUser?.name ?? null);
+      setRoleInStore(nextUser?.role ?? null);
     },
-    [setNameInStore]
+    [setNameInStore, setRoleInStore]
   );
 
   useEffect(() => {
@@ -66,6 +71,7 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
         if (!storedUser && storedProfile) {
           setRoleState(storedProfile.role);
           setNameInStore(storedProfile.username);
+          setRoleInStore(storedProfile.role);
         }
 
         const resolvedAvatar = avatar ?? storedProfile?.avatarUri ?? null;
@@ -161,24 +167,96 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
   }, [setAvatarInStore, user]);
 
   const registerUser = useCallback(
-    async (name: string, role: Role) => {
+    async (name: string, role: Role, password: string) => {
       const trimmedName = name.trim();
-      const newUser: User = {
-        id: `user-${Date.now()}`,
-        name: trimmedName,
+
+      if (!trimmedName) {
+        throw new Error('Name is required');
+      }
+
+      if (!password || password.trim().length < 6) {
+        throw new Error('Password must be at least 6 characters');
+      }
+
+      const existingAccount = await findAccount(trimmedName);
+      if (existingAccount) {
+        throw new Error('User with this name already exists');
+      }
+
+      const newAccount: StoredAccount = {
+        username: trimmedName,
         role,
+        password: password.trim(),
+        avatarUri: useUserStore.getState().avatarUri ?? null,
         createdAt: new Date().toISOString(),
       };
 
+      await addAccount(newAccount);
+
+      const newUser: User = {
+        id: `user-${trimmedName.toLowerCase()}`,
+        name: trimmedName,
+        role,
+        createdAt: newAccount.createdAt,
+      };
+
+      const avatarFromStore = newAccount.avatarUri ?? null;
+
       syncUserState(newUser);
-      setDnaAcceptedState(true);
-      const avatarFromStore = useUserStore.getState().avatarUri ?? null;
+      setDnaAcceptedState(false);
+
       await Promise.all([
-        persistSession(newUser, true),
+        persistSession(newUser, false),
         saveUserProfile({ username: newUser.name, role: newUser.role, avatarUri: avatarFromStore }),
+        setStoredDnaAccepted(false),
       ]);
 
       return newUser;
+    },
+    [setDnaAcceptedState, syncUserState]
+  );
+
+  const login = useCallback(
+    async (name: string, password: string) => {
+      const trimmedName = name.trim();
+
+      if (!trimmedName) {
+        throw new Error('Name is required');
+      }
+
+      if (!password) {
+        throw new Error('Password is required');
+      }
+
+      const account = await findAccount(trimmedName);
+
+      if (!account) {
+        throw new Error('User not found');
+      }
+
+      if (account.password !== password) {
+        throw new Error('Incorrect password');
+      }
+
+      const userFromAccount: User = {
+        id: `user-${account.username.toLowerCase()}`,
+        name: account.username,
+        role: account.role,
+        createdAt: account.createdAt,
+      };
+
+      const avatarFromStore = account.avatarUri ?? useUserStore.getState().avatarUri ?? null;
+
+      syncUserState(userFromAccount);
+      setDnaAcceptedState(false);
+
+      await Promise.all([
+        persistSession(userFromAccount, false),
+        saveUserProfile({ username: userFromAccount.name, role: userFromAccount.role, avatarUri: avatarFromStore }),
+        setStoredDnaAccepted(false),
+      ]);
+
+      return userFromAccount;
     },
     [setDnaAcceptedState, syncUserState]
   );
@@ -207,8 +285,9 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
       setDnaAccepted,
       setModelAvatar,
       registerUser,
+      login,
       logout,
     }),
-    [user, role, isLoading, dnaAccepted, modelAvatar, setUser, setRole, setDnaAccepted, setModelAvatar, registerUser, logout]
+    [user, role, isLoading, dnaAccepted, modelAvatar, setUser, setRole, setDnaAccepted, setModelAvatar, registerUser, login, logout]
   );
 });
