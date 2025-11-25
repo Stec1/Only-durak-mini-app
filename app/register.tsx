@@ -21,7 +21,6 @@ import { useAuth } from '@/contexts/auth';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>('model');
   const [error, setError] = useState('');
   const { registerUser } = useAuth();
@@ -30,14 +29,14 @@ export default function RegisterScreen() {
   const { theme } = useThemeCtx();
 
   const handleSubmit = async () => {
-    setError('');
-
-    try {
-      await registerUser(name.trim(), role, password);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create account';
-      setError(message);
+    if (!name.trim()) {
+      setError('Name is required');
+      return;
     }
+
+    setError('');
+    await registerUser(name.trim(), role);
+    router.replace('/(tabs)');
   };
 
   const renderRoleButton = (label: string, value: Role) => {
@@ -72,17 +71,6 @@ export default function RegisterScreen() {
             onChangeText={setName}
             autoCapitalize="words"
             autoCorrect
-            style={styles.input}
-          />
-
-          <InputField
-            label="Password"
-            placeholder="Enter password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
             style={styles.input}
           />
 
@@ -176,14 +164,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     width: '100%',
     height: 52,
-  },
-  linkButton: {
-    marginTop: spacing.md,
-    alignItems: 'center',
-  },
-  linkText: {
-    ...typography.meta,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
   },
 });

@@ -23,6 +23,9 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
+  const [showDNA, setShowDNA] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+  const { setUser, setDnaAccepted } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useThemeCtx();

@@ -55,7 +55,7 @@ function RootContent() {
 }
 
 function RootLayoutNav() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, dnaAccepted } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -66,14 +66,18 @@ function RootLayoutNav() {
     const inRegister = segments[0] === 'register';
     const inTabs = segments[0] === '(tabs)';
 
-    if (!user && !inRegister && !inLogin) {
+    if (!user && !inRegister) {
       router.replace('/register');
-    } else if (user && (inLogin || inRegister)) {
+    } else if (user && !dnaAccepted && !inLogin) {
+      router.replace('/login');
+    } else if (user && dnaAccepted && (inLogin || inRegister)) {
       router.replace('/(tabs)');
+    } else if (user && !dnaAccepted && inTabs) {
+      router.replace('/login');
     } else if (!user && inTabs) {
       router.replace('/register');
     }
-  }, [isLoading, router, segments, user]);
+  }, [dnaAccepted, isLoading, router, segments, user]);
 
   return (
     <Stack 
