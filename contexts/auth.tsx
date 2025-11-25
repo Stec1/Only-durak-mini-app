@@ -144,11 +144,15 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
     async (accepted: boolean) => {
       setDnaAcceptedState(accepted);
 
+      const tasks: Promise<void>[] = [];
+
       if (user) {
-        await persistSession(user, accepted);
-      } else {
-        await setStoredDnaAccepted(accepted);
+        tasks.push(persistSession(user, accepted));
       }
+
+      tasks.push(setStoredDnaAccepted(accepted));
+
+      await Promise.all(tasks);
     },
     [user]
   );

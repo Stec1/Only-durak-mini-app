@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/auth';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>('model');
   const [error, setError] = useState('');
   const { registerUser } = useAuth();
