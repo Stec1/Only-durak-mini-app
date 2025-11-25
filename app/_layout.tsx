@@ -15,6 +15,7 @@ import { colors } from '@/constants/tokens';
 import { tokens } from '@/src/theme/tokens';
 import GradientBackground from '@/components/GradientBackground';
 import DnaConsentModal from '@/components/DnaConsentModal';
+import { setStoredDnaAccepted } from '@/storage/auth';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,8 +32,12 @@ function RootContent() {
   }, [dnaAccepted, isLoading, user]);
 
   const handleAgree = useCallback(async () => {
-    await setDnaAccepted(true);
-    setShowDnaModal(false);
+    try {
+      await Promise.all([setDnaAccepted(true), setStoredDnaAccepted(true)]);
+      setShowDnaModal(false);
+    } catch (error) {
+      console.error('Error accepting DNA rules', error);
+    }
   }, [setDnaAccepted]);
 
   const handleCancel = useCallback(async () => {
@@ -64,18 +69,19 @@ function RootLayoutNav() {
 
     const inLogin = segments[0] === 'login';
     const inRegister = segments[0] === 'register';
-    const inTabs = segments[0] === '(tabs)';
 
-    if (!user && !inRegister) {
+    if (!user && !inRegister && !inLogin) {
       router.replace('/register');
-    } else if (user && !dnaAccepted && !inLogin) {
-      router.replace('/login');
-    } else if (user && dnaAccepted && (inLogin || inRegister)) {
+      return;
+    }
+
+    if (user && !dnaAccepted && !inLogin && !inRegister) {
+      return;
+    }
+
+    if (user && dnaAccepted && (inLogin || inRegister)) {
       router.replace('/(tabs)');
-    } else if (user && !dnaAccepted && inTabs) {
-      router.replace('/login');
-    } else if (!user && inTabs) {
-      router.replace('/register');
+      return;
     }
   }, [dnaAccepted, isLoading, router, segments, user]);
 

@@ -53,12 +53,11 @@ export default function LoginScreen() {
 
             <SolidCard style={styles.card}>
               <InputField
-                label="Username"
-                placeholder="Enter username"
+                label="Name"
+                placeholder="Enter your name"
                 value={username}
                 onChangeText={setUsername}
-                autoCapitalize="none"
-                autoCorrect={false}
+                autoCapitalize="words"
                 style={styles.input}
               />
 
@@ -76,7 +75,7 @@ export default function LoginScreen() {
               {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
               <HoloButton
-                title="Enter"
+                title="LOG IN"
                 onPress={handleLogin}
                 style={styles.loginButton}
               />

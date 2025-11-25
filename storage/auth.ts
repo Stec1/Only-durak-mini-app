@@ -14,21 +14,6 @@ type StoredSession = {
   dnaAccepted: boolean;
 };
 
-function parseUser(raw: string | null): User | null {
-  if (!raw) return null;
-
-  try {
-    const parsed: User = JSON.parse(raw);
-    if (parsed && parsed.id && parsed.name && parsed.role && parsed.createdAt) {
-      return parsed;
-    }
-  } catch (error) {
-    console.warn('Failed to parse stored user', error);
-  }
-
-  return null;
-}
-
 function legacyUserFromRole(role: Role | null): User | null {
   if (!role) return null;
 
@@ -50,7 +35,26 @@ export async function loadStoredSession(): Promise<StoredSession> {
     ]);
 
     const store = Object.fromEntries(entries) as Record<string, string | null>;
-    const user = parseUser(store[STORAGE_KEYS.USER]) ?? legacyUserFromRole(store[STORAGE_KEYS.ROLE] as Role | null);
+
+    let user: User | null = null;
+    const rawUser = store[STORAGE_KEYS.USER];
+
+    if (rawUser) {
+      try {
+        const parsed = JSON.parse(rawUser) as User;
+        if (parsed && parsed.id && parsed.name && parsed.role && parsed.createdAt) {
+          user = parsed;
+        }
+      } catch (error) {
+        console.warn('Failed to parse stored user, clearing', error);
+        await AsyncStorage.removeItem(STORAGE_KEYS.USER);
+      }
+    }
+
+    if (!user) {
+      user = legacyUserFromRole(store[STORAGE_KEYS.ROLE] as Role | null);
+    }
+
     const dnaAccepted = store[STORAGE_KEYS.DNA_ACCEPTED] === 'true';
 
     return { user, dnaAccepted };
