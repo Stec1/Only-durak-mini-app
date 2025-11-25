@@ -171,7 +171,7 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
   }, [setAvatarInStore, user]);
 
   const registerUser = useCallback(
-    async (name: string, role: Role, password: string): Promise<User> => {
+    async (name: string, role: Role, password: string) => {
       const trimmedName = name.trim();
 
       if (!trimmedName) {
@@ -221,7 +221,7 @@ export const [AuthContext, useAuth] = createContextHook<AuthContextType>(() => {
   );
 
   const login = useCallback(
-    async (name: string, password: string): Promise<User> => {
+    async (name: string, password: string) => {
       const trimmedName = name.trim();
 
       if (!trimmedName) {
