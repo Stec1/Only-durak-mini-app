@@ -2,7 +2,7 @@ import '@/utils/logbox';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar, View, ActivityIndicator } from "react-native";
@@ -14,6 +14,7 @@ import { Orbitron_800ExtraBold } from '@expo-google-fonts/orbitron';
 import { colors } from '@/constants/tokens';
 import { tokens } from '@/src/theme/tokens';
 import GradientBackground from '@/components/GradientBackground';
+import DnaConsentModal from '@/components/DnaConsentModal';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,6 +22,24 @@ const queryClient = new QueryClient();
 
 function RootContent() {
   const { theme } = useThemeCtx();
+  const { user, dnaAccepted, setDnaAccepted, logout, isLoading } = useAuth();
+  const [showDnaModal, setShowDnaModal] = useState(false);
+
+  useEffect(() => {
+    if (isLoading) return;
+    setShowDnaModal(Boolean(user && !dnaAccepted));
+  }, [dnaAccepted, isLoading, user]);
+
+  const handleAgree = useCallback(async () => {
+    await setDnaAccepted(true);
+    setShowDnaModal(false);
+  }, [setDnaAccepted]);
+
+  const handleCancel = useCallback(async () => {
+    // Cancel logs out to avoid keeping a session without DNA consent.
+    setShowDnaModal(false);
+    await logout();
+  }, [logout]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -29,40 +48,43 @@ function RootContent() {
         <View style={{ flex: 1 }}>
           <RootLayoutNav />
         </View>
+        <DnaConsentModal visible={showDnaModal} onAgree={handleAgree} onCancel={handleCancel} />
       </View>
     </GestureHandlerRootView>
   );
 }
 
 function RootLayoutNav() {
-  const { role, isLoading, dnaAccepted } = useAuth();
+  const { user, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === 'login';
+    const inLogin = segments[0] === 'login';
+    const inRegister = segments[0] === 'register';
     const inTabs = segments[0] === '(tabs)';
 
-    if (!role && !inAuthGroup) {
-      router.replace('/login');
-    } else if (role && dnaAccepted && inAuthGroup) {
+    if (!user && !inRegister && !inLogin) {
+      router.replace('/register');
+    } else if (user && (inLogin || inRegister)) {
       router.replace('/(tabs)');
-    } else if (role && !dnaAccepted && inTabs) {
-      router.replace('/login');
+    } else if (!user && inTabs) {
+      router.replace('/register');
     }
-  }, [role, segments, isLoading, router, dnaAccepted]);
+  }, [isLoading, router, segments, user]);
 
   return (
     <Stack 
-      screenOptions={{ 
+      screenOptions={{
         headerBackTitle: "Back",
         animation: "fade",
         headerShown: false,
         contentStyle: { backgroundColor: '#0E0F12' },
       }}
     >
+      <Stack.Screen name="register" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="deck-constructor" options={{ headerShown: true }} />
