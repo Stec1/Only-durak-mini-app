@@ -187,6 +187,7 @@ export default function ProfileScreen() {
           <View style={styles.roleBadgeContainer}>
             <Capsule label={`${roleLabel} account`} />
           </View>
+          <Text style={styles.accountType}>{roleLabel} Account</Text>
         </View>
 
         {isModel ? (
@@ -528,6 +529,12 @@ const styles = StyleSheet.create({
   },
   roleBadgeContainer: {
     marginTop: tokens.spacing.sm,
+  },
+  accountType: {
+    ...tokens.typography.caption,
+    color: tokens.text.secondary,
+    marginTop: tokens.spacing.xs,
+    textAlign: 'center',
   },
   statsRow: {
     flexDirection: 'row',
