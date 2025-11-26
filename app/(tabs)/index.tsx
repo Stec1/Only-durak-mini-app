@@ -16,7 +16,6 @@ import { typography } from '@/constants/typography';
 
 import Capsule from '@/components/Capsule';
 import GlassCard from '@/components/GlassCard';
-import SolidCard from '@/components/SolidCard';
 import Divider from '@/components/Divider';
 import ProfileAvatar from '@/components/ProfileAvatar';
 import StatCard from '@/components/StatCard';
