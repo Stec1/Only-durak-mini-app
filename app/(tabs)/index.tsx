@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/auth';
 import { useTokens } from '@/src/contexts/theme';
 import { useRouter } from 'expo-router';
-import { getUser, isModel as checkIsModel } from '@/store/user';
 import { loadDeck, saveDeck, DECK_KEYS, type DeckMap } from '@/utils/deck';
 import { getDecks, saveDeck as updateDeck, deleteDeck } from '@/storage/decks';
 import { Deck } from '@/types/deck';
@@ -17,7 +16,6 @@ import { typography } from '@/constants/typography';
 
 import Capsule from '@/components/Capsule';
 import GlassCard from '@/components/GlassCard';
-import SolidCard from '@/components/SolidCard';
 import Divider from '@/components/Divider';
 import ProfileAvatar from '@/components/ProfileAvatar';
 import StatCard from '@/components/StatCard';
@@ -37,8 +35,10 @@ export default function ProfileScreen() {
   const themeTokens = useTokens();
   const { user, role, logout } = useAuth();
   const router = useRouter();
-  const { nickname } = getUser();
-  const isModel = user?.username === 'Model';
+  const isModel = role === 'model';
+  const displayName = user?.name || 'Player';
+  const roleLabel = role === 'model' ? 'Model' : role === 'fan' ? 'Fan' : 'Guest';
+  const userIdForDeck = user?.id || 'Model';
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
   const [deck, setDeck] = useState<DeckMap | null>(null);
   const [deckProgress, setDeckProgress] = useState({ filled: 0, total: DECK_KEYS.length });
@@ -51,27 +51,26 @@ export default function ProfileScreen() {
   const [showThemePicker, setShowThemePicker] = useState(false);
 
   useEffect(() => {
-    if (!role) {
-      router.replace('/login');
+    if (!user) {
+      router.replace('/register');
     }
-  }, [role, router]);
+  }, [router, user]);
 
   useEffect(() => {
-    if (checkIsModel()) {
+    if (role === 'model') {
       loadDeck().then((loaded) => {
         setDeck(loaded);
         const filled = Object.values(loaded).filter((uri) => uri !== null).length;
         setDeckProgress({ filled, total: DECK_KEYS.length });
       });
-      const modelId = user?.username || 'Model';
-      getDecks(modelId).then(setDecks);
+      getDecks(userIdForDeck).then(setDecks);
     }
-  }, [user?.username]);
+  }, [role, userIdForDeck]);
 
   const handleLogout = async () => {
     setShowSettingsSheet(false);
     await logout();
-    router.replace('/login');
+    router.replace('/register');
   };
 
   const settingsCardBgWithOpacity = themeTokens.cardBg + 'F0';
@@ -98,8 +97,7 @@ export default function ProfileScreen() {
   };
 
   const loadDecks = async () => {
-    const modelId = user?.username || 'Model';
-    const loadedDecks = await getDecks(modelId);
+    const loadedDecks = await getDecks(userIdForDeck);
     setDecks(loadedDecks);
   };
 
@@ -129,8 +127,7 @@ export default function ProfileScreen() {
                   text: 'Delete',
                   style: 'destructive',
                   onPress: async () => {
-                    const modelId = user?.username || 'Model';
-                    await deleteDeck(modelId, deck.id);
+                    await deleteDeck(userIdForDeck, deck.id);
                     await loadDecks();
                     Alert.alert('Success', 'Deck deleted successfully.');
                   },
@@ -147,14 +144,13 @@ export default function ProfileScreen() {
   const handleRenameDeck = async () => {
     if (!selectedDeck || !newDeckName.trim()) return;
 
-    const modelId = user?.username || 'Model';
     const updatedDeckData: Deck = {
       ...selectedDeck,
       name: newDeckName.trim(),
       updatedAt: Date.now(),
     };
 
-    await updateDeck(modelId, updatedDeckData);
+    await updateDeck(userIdForDeck, updatedDeckData);
     await loadDecks();
     setRenameModalVisible(false);
     setSelectedDeck(null);
@@ -186,8 +182,10 @@ export default function ProfileScreen() {
             size={144}
           />
 
-          <Text style={styles.displayName}>{nickname}</Text>
-          <Text style={styles.accountType}>{isModel ? 'Model Account' : 'Fan Account'}</Text>
+          <Text style={styles.displayName}>{displayName}</Text>
+          <View style={styles.roleBadgeContainer}>
+            <Capsule label={`${roleLabel} account`} />
+          </View>
         </View>
 
         {isModel ? (
@@ -240,7 +238,7 @@ export default function ProfileScreen() {
 
 
 
-        {checkIsModel() && (
+        {isModel && (
           <>
             <Text style={styles.sectionTitle}>My Deck</Text>
             
@@ -273,7 +271,7 @@ export default function ProfileScreen() {
 
         <Text style={styles.sectionTitle}>Actions</Text>
 
-        {checkIsModel() ? (
+        {isModel ? (
           <>
             <GlassCard style={styles.actionCard}>
               <TouchableOpacity 
@@ -339,7 +337,7 @@ export default function ProfileScreen() {
           </>
         )}
 
-        {checkIsModel() && deckProgress.filled > 0 && (
+        {isModel && deckProgress.filled > 0 && (
           <>
             <View style={{ height: spacing.md }} />
             <TouchableOpacity 
@@ -527,11 +525,9 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.lg,
     textAlign: 'center',
   },
-  accountType: {
-    ...tokens.typography.caption,
-    color: tokens.text.secondary,
-    marginTop: tokens.spacing.xs,
-    textAlign: 'center',
+  roleBadgeContainer: {
+    marginTop: tokens.spacing.sm,
+    marginBottom: tokens.spacing.sm,
   },
   statsRow: {
     flexDirection: 'row',
