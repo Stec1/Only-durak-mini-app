@@ -23,9 +23,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
-  const [showDNA, setShowDNA] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
-  const { setUser, setDnaAccepted } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useThemeCtx();
@@ -85,7 +82,7 @@ export default function LoginScreen() {
                 style={styles.linkButton}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.linkText, { color: theme.textSecondary }]}>Don’t have an account? Create one</Text>
+                <Text style={[styles.linkText, { color: theme.textSecondary }]}>Don't have an account? Create one</Text>
               </TouchableOpacity>
             </SolidCard>
           </View>

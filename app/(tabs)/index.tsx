@@ -38,6 +38,7 @@ export default function ProfileScreen() {
   const isModel = role === 'model';
   const displayName = user?.name || 'Player';
   const roleLabel = role === 'model' ? 'Model' : role === 'fan' ? 'Fan' : 'Guest';
+  const roleBadgeLabel = `${roleLabel} account`;
   const userIdForDeck = user?.id || 'Model';
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
   const [deck, setDeck] = useState<DeckMap | null>(null);
@@ -184,9 +185,8 @@ export default function ProfileScreen() {
 
           <Text style={styles.displayName}>{displayName}</Text>
           <View style={styles.roleBadgeContainer}>
-            <Capsule label={`${roleLabel} account`} />
+            <Capsule label={roleBadgeLabel} />
           </View>
-          <Text style={styles.accountType}>{roleLabel} Account</Text>
         </View>
 
         {isModel ? (
@@ -528,12 +528,7 @@ const styles = StyleSheet.create({
   },
   roleBadgeContainer: {
     marginTop: tokens.spacing.sm,
-  },
-  accountType: {
-    ...tokens.typography.caption,
-    color: tokens.text.secondary,
-    marginTop: tokens.spacing.xs,
-    textAlign: 'center',
+    marginBottom: tokens.spacing.sm,
   },
   statsRow: {
     flexDirection: 'row',
