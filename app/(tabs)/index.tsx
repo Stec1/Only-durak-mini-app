@@ -579,12 +579,13 @@ const styles = StyleSheet.create({
   statsChip: {
     flex: 1,
     marginHorizontal: tokens.spacing.xs,
-    padding: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.md,
     aspectRatio: 1,
     borderRadius: 8,
     backgroundColor: tokens.card.bg,
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   statsChipIcon: {
     width: 28,
@@ -593,7 +594,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: `${tokens.accent}1A`,
-    marginBottom: tokens.spacing.sm,
+    marginBottom: tokens.spacing.xs,
   },
   statsChipLabel: {
     ...tokens.typography.caption,
