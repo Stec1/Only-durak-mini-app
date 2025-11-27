@@ -192,38 +192,44 @@ export default function ProfileScreen() {
             <Capsule label={roleBadgeLabel} />
           </View>
           {isModel && (
-            <View style={styles.statsChipsRow}>
+            <View style={styles.statsRow}>
               <TouchableOpacity
-                style={styles.statsChip}
+                style={styles.statCard}
                 activeOpacity={0.7}
                 onPress={() => handleBadgePress('games')}
               >
-                <View style={styles.statsChipIcon}>
-                  <Trophy color={tokens.accent} size={18} strokeWidth={2.5} />
+                <View style={styles.statContent}>
+                  <View style={styles.statIcon}>
+                    <Trophy color={tokens.accent} size={18} strokeWidth={2.5} />
+                  </View>
+                  <Text style={styles.statLabel}>Games</Text>
                 </View>
-                <Text style={styles.statsChipLabel}>Games</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.statsChip}
+                style={styles.statCard}
                 activeOpacity={0.7}
                 onPress={() => handleBadgePress('earnings')}
               >
-                <View style={styles.statsChipIcon}>
-                  <TrendingUp color={tokens.accent} size={18} strokeWidth={2.5} />
+                <View style={styles.statContent}>
+                  <View style={styles.statIcon}>
+                    <TrendingUp color={tokens.accent} size={18} strokeWidth={2.5} />
+                  </View>
+                  <Text style={styles.statLabel}>Earnings</Text>
                 </View>
-                <Text style={styles.statsChipLabel}>Earnings</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.statsChip}
+                style={styles.statCard}
                 activeOpacity={0.7}
                 onPress={() => handleBadgePress('jokers')}
               >
-                <View style={styles.statsChipIcon}>
-                  <Flame color={tokens.accent} size={18} strokeWidth={2.5} />
+                <View style={styles.statContent}>
+                  <View style={styles.statIcon}>
+                    <Flame color={tokens.accent} size={18} strokeWidth={2.5} />
+                  </View>
+                  <Text style={styles.statLabel}>Joker NFTs</Text>
                 </View>
-                <Text style={styles.statsChipLabel}>Joker NFTs</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -269,7 +275,7 @@ export default function ProfileScreen() {
             </View>
           ) : null
         ) : (
-          <View style={styles.statsRow}>
+          <View style={styles.nonModelStatsRow}>
             <StatCard value={6} caption="GAMES PLAYED" />
             <StatCard value={120} caption="CREDITS" />
             <StatCard value={1} caption="NFTs WON" />
@@ -569,39 +575,32 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.sm,
     marginBottom: tokens.spacing.sm,
   },
-  statsChipsRow: {
+  statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
     marginTop: tokens.spacing.lg,
-    marginBottom: tokens.spacing.xl,
   },
-  statsChip: {
+  statCard: {
     flex: 1,
+    height: 96,
     marginHorizontal: tokens.spacing.xs,
-    paddingVertical: tokens.spacing.sm,
-    paddingHorizontal: tokens.spacing.md,
-    aspectRatio: 1,
-    borderRadius: 8,
     backgroundColor: tokens.card.bg,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statsChipIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 999,
+  statContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: `${tokens.accent}1A`,
+  },
+  statIcon: {
     marginBottom: tokens.spacing.xs,
   },
-  statsChipLabel: {
-    ...tokens.typography.caption,
+  statLabel: {
+    ...tokens.typography.body,
     color: tokens.text.secondary,
-    textAlign: 'center',
   },
-  statsRow: {
+  nonModelStatsRow: {
     flexDirection: 'row',
     gap: tokens.spacing.md,
     marginBottom: tokens.spacing.xl,
