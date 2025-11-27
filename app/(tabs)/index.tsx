@@ -19,11 +19,7 @@ import GlassCard from '@/components/GlassCard';
 import Divider from '@/components/Divider';
 import ProfileAvatar from '@/components/ProfileAvatar';
 import StatCard from '@/components/StatCard';
-import StatsAccordion from '@/src/components/profile/StatsAccordion';
-import EarningsChart from '@/src/components/profile/EarningsChart';
-import JokersPanel from '@/src/components/profile/JokersPanel';
-import GamesStatsPanel from '@/src/components/profile/GamesStatsPanel';
-import { mockEarnings, mockSummary, mockRecent, mockJokers } from '@/src/data/profileMocks';
+import { mockEarnings, mockSummary, mockJokers } from '@/src/data/profileMocks';
 import ThemePickerSheet from '@/src/components/ThemePickerSheet';
 
 
@@ -48,7 +44,6 @@ export default function ProfileScreen() {
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
   const [newDeckName, setNewDeckName] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
-  const [openAccordion, setOpenAccordion] = useState<'games' | 'earnings' | 'jokers' | null>(null);
   const [showThemePicker, setShowThemePicker] = useState(false);
 
   useEffect(() => {
@@ -187,49 +182,36 @@ export default function ProfileScreen() {
           <View style={styles.roleBadgeContainer}>
             <Capsule label={roleBadgeLabel} />
           </View>
+          {isModel && (
+            <View style={styles.statsChipsRow}>
+              <View style={styles.statsChip}>
+                <View style={styles.statsChipIcon}>
+                  <Trophy color={tokens.accent} size={18} strokeWidth={2.5} />
+                </View>
+                <Text style={styles.statsChipLabel}>Games</Text>
+                <Text style={styles.statsChipValue}>{mockSummary.total}</Text>
+              </View>
+
+              <View style={styles.statsChip}>
+                <View style={styles.statsChipIcon}>
+                  <TrendingUp color={tokens.accent} size={18} strokeWidth={2.5} />
+                </View>
+                <Text style={styles.statsChipLabel}>Earnings</Text>
+                <Text style={styles.statsChipValue}>{mockEarnings.total}</Text>
+              </View>
+
+              <View style={styles.statsChip}>
+                <View style={styles.statsChipIcon}>
+                  <Flame color={tokens.accent} size={18} strokeWidth={2.5} />
+                </View>
+                <Text style={styles.statsChipLabel}>Joker NFTs</Text>
+                <Text style={styles.statsChipValue}>{mockJokers.length}</Text>
+              </View>
+            </View>
+          )}
         </View>
 
-        {isModel ? (
-          <View style={styles.accordionsContainer}>
-            <StatsAccordion
-              title="Games Played"
-              value={mockSummary.total}
-              icon={<Trophy color={tokens.text.primary} size={20} strokeWidth={2.5} />}
-              isOpen={openAccordion === 'games'}
-              onToggle={() => setOpenAccordion(openAccordion === 'games' ? null : 'games')}
-            >
-              <GamesStatsPanel summary={mockSummary} recent={mockRecent} />
-            </StatsAccordion>
-
-            <StatsAccordion
-              title="Earnings"
-              value={mockEarnings.total}
-              icon={<TrendingUp color={tokens.text.primary} size={20} strokeWidth={2.5} />}
-              isOpen={openAccordion === 'earnings'}
-              onToggle={() => setOpenAccordion(openAccordion === 'earnings' ? null : 'earnings')}
-            >
-              <EarningsChart 
-                data={mockEarnings.series}
-                total={mockEarnings.total}
-                week={mockEarnings.week}
-                month={mockEarnings.month}
-              />
-            </StatsAccordion>
-
-            <StatsAccordion
-              title="Joker NFTs"
-              value={mockJokers.length}
-              icon={<Flame color={tokens.text.primary} size={20} strokeWidth={2.5} />}
-              isOpen={openAccordion === 'jokers'}
-              onToggle={() => setOpenAccordion(openAccordion === 'jokers' ? null : 'jokers')}
-            >
-              <JokersPanel 
-                jokers={mockJokers}
-                onOpenCollection={() => {}}
-              />
-            </StatsAccordion>
-          </View>
-        ) : (
+        {isModel ? null : (
           <View style={styles.statsRow}>
             <StatCard value={6} caption="GAMES PLAYED" />
             <StatCard value={120} caption="CREDITS" />
@@ -530,6 +512,41 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.sm,
     marginBottom: tokens.spacing.sm,
   },
+  statsChipsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: tokens.spacing.lg,
+    marginBottom: tokens.spacing.xl,
+  },
+  statsChip: {
+    flex: 1,
+    marginHorizontal: tokens.spacing.xs,
+    paddingVertical: tokens.spacing.md,
+    paddingHorizontal: tokens.spacing.md,
+    borderRadius: tokens.card.radius,
+    backgroundColor: tokens.card.bg,
+    alignItems: 'center',
+  },
+  statsChipIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: `${tokens.accent}1A`,
+    marginBottom: tokens.spacing.sm,
+  },
+  statsChipLabel: {
+    ...tokens.typography.caption,
+    color: tokens.text.secondary,
+  },
+  statsChipValue: {
+    ...tokens.typography.h3,
+    color: tokens.text.primary,
+    marginTop: 2,
+    fontWeight: '600',
+  },
   statsRow: {
     flexDirection: 'row',
     gap: tokens.spacing.md,
@@ -767,9 +784,6 @@ const styles = StyleSheet.create({
     color: colors.bg,
     fontSize: 15,
     fontWeight: '700' as const,
-  },
-  accordionsContainer: {
-    marginBottom: tokens.spacing.xl,
   },
   themeIcon: {
     width: 28,
