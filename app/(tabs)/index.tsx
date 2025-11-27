@@ -102,6 +102,10 @@ export default function ProfileScreen() {
     setDecks(loadedDecks);
   };
 
+  const handleBadgePress = (section: 'games' | 'earnings' | 'jokers') => {
+    setOpenAccordion((prev) => (prev === section ? null : section));
+  };
+
   const handleDeckSettings = (deck: Deck) => {
     Alert.alert(
       'Deck Settings',
@@ -192,82 +196,78 @@ export default function ProfileScreen() {
               <TouchableOpacity
                 style={styles.statsChip}
                 activeOpacity={0.7}
-                onPress={() => setOpenAccordion(openAccordion === 'games' ? null : 'games')}
+                onPress={() => handleBadgePress('games')}
               >
                 <View style={styles.statsChipIcon}>
                   <Trophy color={tokens.accent} size={18} strokeWidth={2.5} />
                 </View>
                 <Text style={styles.statsChipLabel}>Games</Text>
-                <Text style={styles.statsChipValue}>{mockSummary.total}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.statsChip}
                 activeOpacity={0.7}
-                onPress={() => setOpenAccordion(openAccordion === 'earnings' ? null : 'earnings')}
+                onPress={() => handleBadgePress('earnings')}
               >
                 <View style={styles.statsChipIcon}>
                   <TrendingUp color={tokens.accent} size={18} strokeWidth={2.5} />
                 </View>
                 <Text style={styles.statsChipLabel}>Earnings</Text>
-                <Text style={styles.statsChipValue}>{mockEarnings.total}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.statsChip}
                 activeOpacity={0.7}
-                onPress={() => setOpenAccordion(openAccordion === 'jokers' ? null : 'jokers')}
+                onPress={() => handleBadgePress('jokers')}
               >
                 <View style={styles.statsChipIcon}>
                   <Flame color={tokens.accent} size={18} strokeWidth={2.5} />
                 </View>
                 <Text style={styles.statsChipLabel}>Joker NFTs</Text>
-                <Text style={styles.statsChipValue}>{mockJokers.length}</Text>
               </TouchableOpacity>
             </View>
           )}
         </View>
 
         {isModel ? (
-          <View style={styles.accordionsContainer}>
-            <StatsAccordion
-              title="Games Played"
-              value={mockSummary.total}
-              icon={<Trophy color={tokens.text.primary} size={20} strokeWidth={2.5} />}
-              isOpen={openAccordion === 'games'}
-              onToggle={() => setOpenAccordion(openAccordion === 'games' ? null : 'games')}
-            >
-              <GamesStatsPanel summary={mockSummary} recent={mockRecent} />
-            </StatsAccordion>
+          openAccordion ? (
+            <View style={styles.accordionsContainer}>
+              <StatsAccordion
+                title="Games Played"
+                icon={<Trophy color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+                isOpen={openAccordion === 'games'}
+                showHeader={false}
+              >
+                <GamesStatsPanel summary={mockSummary} recent={mockRecent} />
+              </StatsAccordion>
 
-            <StatsAccordion
-              title="Earnings"
-              value={mockEarnings.total}
-              icon={<TrendingUp color={tokens.text.primary} size={20} strokeWidth={2.5} />}
-              isOpen={openAccordion === 'earnings'}
-              onToggle={() => setOpenAccordion(openAccordion === 'earnings' ? null : 'earnings')}
-            >
-              <EarningsChart
-                data={mockEarnings.series}
-                total={mockEarnings.total}
-                week={mockEarnings.week}
-                month={mockEarnings.month}
-              />
-            </StatsAccordion>
+              <StatsAccordion
+                title="Earnings"
+                icon={<TrendingUp color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+                isOpen={openAccordion === 'earnings'}
+                showHeader={false}
+              >
+                <EarningsChart
+                  data={mockEarnings.series}
+                  total={mockEarnings.total}
+                  week={mockEarnings.week}
+                  month={mockEarnings.month}
+                />
+              </StatsAccordion>
 
-            <StatsAccordion
-              title="Joker NFTs"
-              value={mockJokers.length}
-              icon={<Flame color={tokens.text.primary} size={20} strokeWidth={2.5} />}
-              isOpen={openAccordion === 'jokers'}
-              onToggle={() => setOpenAccordion(openAccordion === 'jokers' ? null : 'jokers')}
-            >
-              <JokersPanel
-                jokers={mockJokers}
-                onOpenCollection={() => {}}
-              />
-            </StatsAccordion>
-          </View>
+              <StatsAccordion
+                title="Joker NFTs"
+                icon={<Flame color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+                isOpen={openAccordion === 'jokers'}
+                showHeader={false}
+              >
+                <JokersPanel
+                  jokers={mockJokers}
+                  onOpenCollection={() => {}}
+                />
+              </StatsAccordion>
+            </View>
+          ) : null
         ) : (
           <View style={styles.statsRow}>
             <StatCard value={6} caption="GAMES PLAYED" />
@@ -579,11 +579,12 @@ const styles = StyleSheet.create({
   statsChip: {
     flex: 1,
     marginHorizontal: tokens.spacing.xs,
-    paddingVertical: tokens.spacing.md,
-    paddingHorizontal: tokens.spacing.md,
-    borderRadius: tokens.card.radius,
+    padding: tokens.spacing.md,
+    aspectRatio: 1,
+    borderRadius: 8,
     backgroundColor: tokens.card.bg,
     alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   statsChipIcon: {
     width: 28,
@@ -597,12 +598,7 @@ const styles = StyleSheet.create({
   statsChipLabel: {
     ...tokens.typography.caption,
     color: tokens.text.secondary,
-  },
-  statsChipValue: {
-    ...tokens.typography.h3,
-    color: tokens.text.primary,
-    marginTop: 2,
-    fontWeight: '600',
+    textAlign: 'center',
   },
   statsRow: {
     flexDirection: 'row',

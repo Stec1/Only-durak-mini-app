@@ -10,53 +10,65 @@ type StatsAccordionProps = {
   value?: string | number;
   icon?: ReactNode;
   isOpen: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
+  showHeader?: boolean;
   children: ReactNode;
 };
 
 export default function StatsAccordion({ 
   title, 
   subtitle, 
-  value, 
-  icon, 
-  isOpen, 
-  onToggle, 
-  children 
+  value,
+  icon,
+  isOpen,
+  onToggle,
+  showHeader = true,
+  children
 }: StatsAccordionProps) {
   const themeTokens = useTokens();
 
+  const shouldRenderHeader = showHeader !== false;
+
   const handleToggle = () => {
+    if (!shouldRenderHeader || !onToggle) return;
     if (Platform.OS !== 'web') {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     }
     onToggle();
   };
 
+  if (!shouldRenderHeader && !isOpen) {
+    return null;
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: themeTokens.cardBg, borderColor: themeTokens.border }]}>
-      <TouchableOpacity 
-        style={styles.header}
-        onPress={handleToggle}
-        activeOpacity={0.7}
-      >
-        {icon ? <View style={[styles.iconWrapper, { backgroundColor: themeTokens.bg }]}>
-          {icon}
-        </View> : null}
-        
-        <View style={styles.headerContent}>
-          <Text style={[styles.title, { color: themeTokens.text }]}>{title}</Text>
-          {subtitle && <Text style={[styles.subtitle, { color: themeTokens.subtext }]}>{subtitle}</Text>}
-        </View>
+      {shouldRenderHeader && (
+        <TouchableOpacity
+          style={styles.header}
+          onPress={handleToggle}
+          activeOpacity={0.7}
+          disabled={!onToggle}
+        >
+          {icon ? <View style={[styles.iconWrapper, { backgroundColor: themeTokens.bg }]}>
+            {icon}
+          </View> : null}
 
-        <View style={styles.headerRight}>
-          {value !== undefined && (
-            <Text style={[styles.value, { color: themeTokens.text }]}>{value}</Text>
-          )}
-          <View style={[styles.chevronWrapper, isOpen && styles.chevronOpen]}>
-            <ChevronDown color={themeTokens.subtext} size={20} strokeWidth={2.5} />
+          <View style={styles.headerContent}>
+            <Text style={[styles.title, { color: themeTokens.text }]}>{title}</Text>
+            {subtitle && <Text style={[styles.subtitle, { color: themeTokens.subtext }]}>{subtitle}</Text>}
           </View>
-        </View>
-      </TouchableOpacity>
+
+          <View style={styles.headerRight}>
+            {value !== undefined && (
+              <Text style={[styles.value, { color: themeTokens.text }]}>{value}</Text>
+            )}
+            <View style={[styles.chevronWrapper, isOpen && styles.chevronOpen]}>
+              <ChevronDown color={themeTokens.subtext} size={20} strokeWidth={2.5} />
+            </View>
+          </View>
+        </TouchableOpacity>
+      )}
 
       {isOpen && (
         <View style={styles.content}>
