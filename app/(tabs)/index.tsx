@@ -19,7 +19,11 @@ import GlassCard from '@/components/GlassCard';
 import Divider from '@/components/Divider';
 import ProfileAvatar from '@/components/ProfileAvatar';
 import StatCard from '@/components/StatCard';
-import { mockEarnings, mockSummary, mockJokers } from '@/src/data/profileMocks';
+import StatsAccordion from '@/src/components/profile/StatsAccordion';
+import EarningsChart from '@/src/components/profile/EarningsChart';
+import JokersPanel from '@/src/components/profile/JokersPanel';
+import GamesStatsPanel from '@/src/components/profile/GamesStatsPanel';
+import { mockEarnings, mockSummary, mockRecent, mockJokers } from '@/src/data/profileMocks';
 import ThemePickerSheet from '@/src/components/ThemePickerSheet';
 
 
@@ -44,6 +48,7 @@ export default function ProfileScreen() {
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
   const [newDeckName, setNewDeckName] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<'games' | 'earnings' | 'jokers' | null>(null);
   const [showThemePicker, setShowThemePicker] = useState(false);
 
   useEffect(() => {
@@ -184,34 +189,86 @@ export default function ProfileScreen() {
           </View>
           {isModel && (
             <View style={styles.statsChipsRow}>
-              <View style={styles.statsChip}>
+              <TouchableOpacity
+                style={styles.statsChip}
+                activeOpacity={0.7}
+                onPress={() => setOpenAccordion(openAccordion === 'games' ? null : 'games')}
+              >
                 <View style={styles.statsChipIcon}>
                   <Trophy color={tokens.accent} size={18} strokeWidth={2.5} />
                 </View>
                 <Text style={styles.statsChipLabel}>Games</Text>
                 <Text style={styles.statsChipValue}>{mockSummary.total}</Text>
-              </View>
+              </TouchableOpacity>
 
-              <View style={styles.statsChip}>
+              <TouchableOpacity
+                style={styles.statsChip}
+                activeOpacity={0.7}
+                onPress={() => setOpenAccordion(openAccordion === 'earnings' ? null : 'earnings')}
+              >
                 <View style={styles.statsChipIcon}>
                   <TrendingUp color={tokens.accent} size={18} strokeWidth={2.5} />
                 </View>
                 <Text style={styles.statsChipLabel}>Earnings</Text>
                 <Text style={styles.statsChipValue}>{mockEarnings.total}</Text>
-              </View>
+              </TouchableOpacity>
 
-              <View style={styles.statsChip}>
+              <TouchableOpacity
+                style={styles.statsChip}
+                activeOpacity={0.7}
+                onPress={() => setOpenAccordion(openAccordion === 'jokers' ? null : 'jokers')}
+              >
                 <View style={styles.statsChipIcon}>
                   <Flame color={tokens.accent} size={18} strokeWidth={2.5} />
                 </View>
                 <Text style={styles.statsChipLabel}>Joker NFTs</Text>
                 <Text style={styles.statsChipValue}>{mockJokers.length}</Text>
-              </View>
+              </TouchableOpacity>
             </View>
           )}
         </View>
 
-        {isModel ? null : (
+        {isModel ? (
+          <View style={styles.accordionsContainer}>
+            <StatsAccordion
+              title="Games Played"
+              value={mockSummary.total}
+              icon={<Trophy color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+              isOpen={openAccordion === 'games'}
+              onToggle={() => setOpenAccordion(openAccordion === 'games' ? null : 'games')}
+            >
+              <GamesStatsPanel summary={mockSummary} recent={mockRecent} />
+            </StatsAccordion>
+
+            <StatsAccordion
+              title="Earnings"
+              value={mockEarnings.total}
+              icon={<TrendingUp color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+              isOpen={openAccordion === 'earnings'}
+              onToggle={() => setOpenAccordion(openAccordion === 'earnings' ? null : 'earnings')}
+            >
+              <EarningsChart
+                data={mockEarnings.series}
+                total={mockEarnings.total}
+                week={mockEarnings.week}
+                month={mockEarnings.month}
+              />
+            </StatsAccordion>
+
+            <StatsAccordion
+              title="Joker NFTs"
+              value={mockJokers.length}
+              icon={<Flame color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+              isOpen={openAccordion === 'jokers'}
+              onToggle={() => setOpenAccordion(openAccordion === 'jokers' ? null : 'jokers')}
+            >
+              <JokersPanel
+                jokers={mockJokers}
+                onOpenCollection={() => {}}
+              />
+            </StatsAccordion>
+          </View>
+        ) : (
           <View style={styles.statsRow}>
             <StatCard value={6} caption="GAMES PLAYED" />
             <StatCard value={120} caption="CREDITS" />
@@ -550,6 +607,9 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: tokens.spacing.md,
+    marginBottom: tokens.spacing.xl,
+  },
+  accordionsContainer: {
     marginBottom: tokens.spacing.xl,
   },
   divider: {
