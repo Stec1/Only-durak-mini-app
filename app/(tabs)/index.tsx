@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View, ScrollView, Platform, TouchableOpacity, Modal, Pressable, FlatList, Alert, TextInput } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { Users, LogOut, Package, Settings, ChevronRight, RotateCcw, Trophy, TrendingUp, Flame, Lightbulb } from 'lucide-react-native';
@@ -33,6 +33,7 @@ import ThemePickerSheet from '@/src/components/ThemePickerSheet';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const themeTokens = useTokens();
+  const styles = useMemo(() => createStyles(themeTokens), [themeTokens]);
   const { user, role, logout } = useAuth();
   const router = useRouter();
   const isModel = role === 'model';
@@ -177,7 +178,7 @@ export default function ProfileScreen() {
               activeOpacity={0.7}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Settings color={tokens.text.secondary} size={24} strokeWidth={2.5} />
+              <Settings color={themeTokens.subtext} size={24} strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
 
@@ -200,7 +201,7 @@ export default function ProfileScreen() {
               >
                 <View style={styles.statContent}>
                   <View style={styles.statIcon}>
-                    <Trophy color={tokens.accent} size={18} strokeWidth={2.5} />
+                    <Trophy color={themeTokens.accent} size={18} strokeWidth={2.5} />
                   </View>
                   <Text style={styles.statLabel}>Games</Text>
                 </View>
@@ -213,7 +214,7 @@ export default function ProfileScreen() {
               >
                 <View style={styles.statContent}>
                   <View style={styles.statIcon}>
-                    <TrendingUp color={tokens.accent} size={18} strokeWidth={2.5} />
+                    <TrendingUp color={themeTokens.accent} size={18} strokeWidth={2.5} />
                   </View>
                   <Text style={styles.statLabel}>Earnings</Text>
                 </View>
@@ -226,7 +227,7 @@ export default function ProfileScreen() {
               >
                 <View style={styles.statContent}>
                   <View style={styles.statIcon}>
-                    <Flame color={tokens.accent} size={18} strokeWidth={2.5} />
+                    <Flame color={themeTokens.accent} size={18} strokeWidth={2.5} />
                   </View>
                   <Text style={styles.statLabel}>Joker NFTs</Text>
                 </View>
@@ -240,7 +241,7 @@ export default function ProfileScreen() {
             <View style={styles.accordionsContainer}>
               <StatsAccordion
                 title="Games Played"
-                icon={<Trophy color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+                icon={<Trophy color={themeTokens.text} size={20} strokeWidth={2.5} />}
                 isOpen={openAccordion === 'games'}
                 showHeader={false}
               >
@@ -249,7 +250,7 @@ export default function ProfileScreen() {
 
               <StatsAccordion
                 title="Earnings"
-                icon={<TrendingUp color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+                icon={<TrendingUp color={themeTokens.text} size={20} strokeWidth={2.5} />}
                 isOpen={openAccordion === 'earnings'}
                 showHeader={false}
               >
@@ -263,7 +264,7 @@ export default function ProfileScreen() {
 
               <StatsAccordion
                 title="Joker NFTs"
-                icon={<Flame color={tokens.text.primary} size={20} strokeWidth={2.5} />}
+                icon={<Flame color={themeTokens.text} size={20} strokeWidth={2.5} />}
                 isOpen={openAccordion === 'jokers'}
                 showHeader={false}
               >
@@ -328,11 +329,11 @@ export default function ProfileScreen() {
                 <View style={styles.actionContent}>
                   <View style={styles.actionLeft}>
                     <View style={styles.actionIconWrapper}>
-                      <Package color={colors.primary} size={24} strokeWidth={2.5} />
+                      <Package color={themeTokens.accent} size={24} strokeWidth={2.5} />
                     </View>
                     <Text style={styles.actionTitle}>Open Deck Constructor</Text>
                   </View>
-                  <ChevronRight color={colors.text} size={20} strokeWidth={2.5} />
+                  <ChevronRight color={themeTokens.text} size={20} strokeWidth={2.5} />
                 </View>
               </TouchableOpacity>
             </GlassCard>
@@ -353,11 +354,11 @@ export default function ProfileScreen() {
                 <View style={styles.actionContent}>
                   <View style={styles.actionLeft}>
                     <View style={styles.actionIconWrapper}>
-                      <Users color={colors.primary} size={24} strokeWidth={2.5} />
+                      <Users color={themeTokens.accent} size={24} strokeWidth={2.5} />
                     </View>
                     <Text style={styles.actionTitle}>Create Game Room</Text>
                   </View>
-                  <ChevronRight color={colors.text} size={20} strokeWidth={2.5} />
+                  <ChevronRight color={themeTokens.text} size={20} strokeWidth={2.5} />
                 </View>
               </TouchableOpacity>
             </GlassCard>
@@ -372,11 +373,11 @@ export default function ProfileScreen() {
                 <View style={styles.actionContent}>
                   <View style={styles.actionLeft}>
                     <View style={styles.actionIconWrapper}>
-                      <Users color={colors.primary} size={24} strokeWidth={2.5} />
+                      <Users color={themeTokens.accent} size={24} strokeWidth={2.5} />
                     </View>
                     <Text style={styles.actionTitle}>Join Model Room</Text>
                   </View>
-                  <ChevronRight color={colors.text} size={20} strokeWidth={2.5} />
+                  <ChevronRight color={themeTokens.text} size={20} strokeWidth={2.5} />
                 </View>
               </TouchableOpacity>
             </GlassCard>
@@ -508,7 +509,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (themeTokens: ReturnType<typeof useTokens>) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -535,13 +536,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: tokens.card.radius,
-    backgroundColor: tokens.card.bg,
+    backgroundColor: themeTokens.cardBg,
     borderWidth: 1,
-    borderColor: tokens.card.border,
+    borderColor: themeTokens.border,
   },
   displayName: {
     ...tokens.typography.h1,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     marginTop: tokens.spacing.lg,
     textAlign: 'center',
   },
@@ -558,10 +559,17 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 96,
     marginHorizontal: tokens.spacing.xs,
-    backgroundColor: tokens.card.bg,
+    backgroundColor: themeTokens.cardBg,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: themeTokens.border,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: themeTokens.cardShadow.shadowColor,
+    shadowOpacity: themeTokens.cardShadow.shadowOpacity,
+    shadowRadius: themeTokens.cardShadow.shadowRadius,
+    shadowOffset: themeTokens.cardShadow.shadowOffset,
+    elevation: themeTokens.cardShadow.elevation,
   },
   statContent: {
     alignItems: 'center',
@@ -572,7 +580,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     ...tokens.typography.body,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
   },
   nonModelStatsRow: {
     flexDirection: 'row',
@@ -587,7 +595,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...tokens.typography.h2,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     marginTop: tokens.spacing.lg,
     marginBottom: tokens.spacing.md,
   },
@@ -616,12 +624,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.surface2,
+    backgroundColor: themeTokens.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   actionTitle: {
     ...typography.subtitle,
+    color: themeTokens.text,
   },
   footerHint: {
     marginTop: spacing.xl,
@@ -631,6 +640,7 @@ const styles = StyleSheet.create({
   hintText: {
     ...typography.meta,
     textAlign: 'center',
+    color: themeTokens.subtext,
   },
   sheetBackdrop: {
     flex: 1,
@@ -646,6 +656,7 @@ const styles = StyleSheet.create({
   },
   sheetTitle: {
     ...typography.h2,
+    color: themeTokens.text,
   },
   sheetOption: {
     flexDirection: 'row',
@@ -657,6 +668,7 @@ const styles = StyleSheet.create({
   sheetOptionText: {
     ...typography.subtitle,
     flex: 1,
+    color: themeTokens.text,
   },
   deckCard: {
     marginBottom: spacing.md,
@@ -670,30 +682,34 @@ const styles = StyleSheet.create({
   deckTitle: {
     ...typography.subtitle,
     fontSize: 18,
+    color: themeTokens.text,
   },
   progressBadge: {
-    backgroundColor: colors.surface2,
+    backgroundColor: themeTokens.cardBg,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: themeTokens.border,
   },
   progressText: {
     ...typography.meta,
     fontSize: 12,
     fontWeight: '700',
+    color: themeTokens.text,
   },
   progressBarContainer: {
     marginBottom: spacing.md,
   },
   progressBarBg: {
     height: 8,
-    backgroundColor: colors.surface2,
+    backgroundColor: themeTokens.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: themeTokens.accent,
     borderRadius: 4,
   },
   deckPreview: {
@@ -708,9 +724,9 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: radius.sm,
     overflow: 'hidden',
-    backgroundColor: colors.surface2,
+    backgroundColor: themeTokens.cardBg,
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: themeTokens.border,
   },
   miniCardImage: {
     width: '100%',
@@ -724,11 +740,13 @@ const styles = StyleSheet.create({
     ...typography.meta,
     fontSize: 14,
     fontWeight: '700',
+    color: themeTokens.text,
   },
   deckHint: {
     ...typography.meta,
     textAlign: 'center',
     marginTop: spacing.xs,
+    color: themeTokens.subtext,
   },
   resetButton: {
     flexDirection: 'row',
@@ -761,16 +779,17 @@ const styles = StyleSheet.create({
     ...typography.h2,
     fontSize: 20,
     marginBottom: spacing.md,
+    color: themeTokens.text,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: colors.line,
+    borderColor: themeTokens.border,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
-    color: colors.text,
+    color: themeTokens.text,
     fontSize: 16,
-    backgroundColor: colors.surface,
+    backgroundColor: themeTokens.cardBg,
     marginBottom: spacing.md,
   },
   modalButtons: {
@@ -790,16 +809,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   modalButtonSave: {
-    backgroundColor: colors.primary,
+    backgroundColor: themeTokens.accent,
   },
   modalButtonTextCancel: {
     ...typography.subtitle,
-    color: colors.textDim,
+    color: themeTokens.subtext,
     fontSize: 15,
   },
   modalButtonTextSave: {
     ...typography.subtitle,
-    color: colors.bg,
+    color: themeTokens.bg,
     fontSize: 15,
     fontWeight: '700' as const,
   },

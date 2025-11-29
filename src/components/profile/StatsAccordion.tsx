@@ -42,7 +42,20 @@ export default function StatsAccordion({
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: themeTokens.cardBg, borderColor: themeTokens.border }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: themeTokens.cardBg,
+          borderColor: themeTokens.border,
+          shadowColor: themeTokens.cardShadow.shadowColor,
+          shadowOpacity: themeTokens.cardShadow.shadowOpacity,
+          shadowRadius: themeTokens.cardShadow.shadowRadius,
+          shadowOffset: themeTokens.cardShadow.shadowOffset,
+          elevation: themeTokens.cardShadow.elevation,
+        },
+      ]}
+    >
       {shouldRenderHeader && (
         <TouchableOpacity
           style={styles.header}
@@ -50,7 +63,7 @@ export default function StatsAccordion({
           activeOpacity={0.7}
           disabled={!onToggle}
         >
-          {icon ? <View style={[styles.iconWrapper, { backgroundColor: themeTokens.bg }]}>
+          {icon ? <View style={[styles.iconWrapper, { backgroundColor: themeTokens.cardBg, borderColor: themeTokens.border }]}>
             {icon}
           </View> : null}
 
@@ -107,6 +120,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: tokens.bg.base,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -12,6 +12,7 @@ import { useTokens } from '@/src/contexts/theme';
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const themeTokens = useTokens();
+  const styles = useMemo(() => createStyles(themeTokens), [themeTokens]);
   const router = useRouter();
   const scrollRef = useRef<ScrollView | null>(null);
   const [deckSectionY, setDeckSectionY] = useState(0);
@@ -303,7 +304,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (themeTokens: ReturnType<typeof useTokens>) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -331,17 +332,17 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     ...tokens.typography.meta,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
     marginBottom: tokens.spacing.xs,
   },
   heroTitle: {
     ...tokens.typography.h1,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     marginBottom: tokens.spacing.sm,
   },
   heroSubtitle: {
     ...tokens.typography.body,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
     lineHeight: 22,
     marginBottom: tokens.spacing.lg,
   },
@@ -360,7 +361,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     ...tokens.typography.h4,
-    color: '#0A0A0A',
+    color: themeTokens.bg,
     fontWeight: '800',
     letterSpacing: 0.6,
   },
@@ -369,20 +370,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.spacing['2xl'],
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: tokens.card.border,
+    borderColor: themeTokens.border,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    backgroundColor: themeTokens.cardBg,
   },
   secondaryButtonText: {
     ...tokens.typography.h4,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     fontWeight: '700',
     letterSpacing: 0.4,
   },
   marquee: {
     borderWidth: 1,
-    borderColor: tokens.card.border,
+    borderColor: themeTokens.border,
     borderRadius: 999,
     paddingVertical: tokens.spacing.xs,
     paddingHorizontal: tokens.spacing.md,
@@ -391,7 +392,7 @@ const styles = StyleSheet.create({
   },
   marqueeText: {
     ...tokens.typography.caption,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
     letterSpacing: 2,
   },
   section: {
@@ -399,12 +400,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...tokens.typography.h2,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     fontWeight: '800',
   },
   sectionSubtitle: {
     ...tokens.typography.body,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
     lineHeight: 22,
   },
   sectionDivider: {
@@ -423,19 +424,19 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(73,214,229,0.12)',
+    backgroundColor: themeTokens.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: tokens.spacing.sm,
   },
   cardTitle: {
     ...tokens.typography.h4,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     marginBottom: tokens.spacing.xs,
   },
   cardDescription: {
     ...tokens.typography.caption,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
     lineHeight: 18,
   },
   linkButton: {
@@ -444,13 +445,13 @@ const styles = StyleSheet.create({
   },
   linkText: {
     ...tokens.typography.caption,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
     fontWeight: '700',
     letterSpacing: 0.6,
   },
   metaLabel: {
     ...tokens.typography.meta,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
   },
   deckPreview: {
     gap: tokens.spacing.md,
@@ -458,20 +459,20 @@ const styles = StyleSheet.create({
   },
   deckPreviewTitle: {
     ...tokens.typography.h3,
-    color: tokens.text.primary,
+    color: themeTokens.text,
   },
   deckPreviewPlaceholder: {
     height: 180,
     borderRadius: tokens.borderRadius.xl,
     borderWidth: 1,
-    borderColor: tokens.card.border,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: themeTokens.border,
+    backgroundColor: themeTokens.cardBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   placeholderText: {
     ...tokens.typography.caption,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
   },
   miniCardsRow: {
     flexDirection: 'row',
@@ -482,8 +483,8 @@ const styles = StyleSheet.create({
     minHeight: 60,
     borderRadius: tokens.borderRadius.lg,
     borderWidth: 1,
-    borderColor: tokens.card.border,
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderColor: themeTokens.border,
+    backgroundColor: themeTokens.cardBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -505,14 +506,14 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: tokens.borderRadius.xl,
     borderWidth: 1,
-    borderColor: tokens.card.border,
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderColor: themeTokens.border,
+    backgroundColor: themeTokens.cardBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   centerCaption: {
     ...tokens.typography.caption,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
     textAlign: 'center',
   },
   bulletList: {
@@ -527,11 +528,11 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: tokens.accent,
+    backgroundColor: themeTokens.accent,
   },
   bulletText: {
     ...tokens.typography.body,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
     flex: 1,
   },
   playersRow: {
@@ -546,8 +547,8 @@ const styles = StyleSheet.create({
     height: 84,
     borderRadius: 42,
     borderWidth: 1,
-    borderColor: tokens.card.border,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: themeTokens.border,
+    backgroundColor: themeTokens.cardBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -555,11 +556,11 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: 'rgba(73,214,229,0.08)',
-    borderColor: tokens.accent,
+    backgroundColor: themeTokens.accentSoft,
+    borderColor: themeTokens.accent,
   },
   modelLabel: {
-    color: tokens.text.primary,
+    color: themeTokens.text,
   },
   pill: {
     alignSelf: 'flex-start',
@@ -567,12 +568,12 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.spacing.xs,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: tokens.card.border,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: themeTokens.border,
+    backgroundColor: themeTokens.cardBg,
   },
   pillText: {
     ...tokens.typography.caption,
-    color: tokens.text.primary,
+    color: themeTokens.text,
   },
   timeline: {
     gap: tokens.spacing.md,
@@ -589,11 +590,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(73,214,229,0.08)',
+    backgroundColor: themeTokens.accentSoft,
   },
   stepNumber: {
     ...tokens.typography.h4,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     fontWeight: '800',
   },
   stepContent: {
@@ -627,12 +628,12 @@ const styles = StyleSheet.create({
   },
   finalTitle: {
     ...tokens.typography.h2,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     fontWeight: '800',
   },
   finalDescription: {
     ...tokens.typography.body,
-    color: tokens.text.secondary,
+    color: themeTokens.subtext,
     textAlign: 'center',
     lineHeight: 22,
   },
