@@ -1,10 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { themes, ThemeId, ThemeValue } from '../theme/themes';
+import { themes, ThemeId, ThemeValue, ThemeTokens } from '../theme/themes';
 
 type Ctx = {
   themeId: ThemeId;
   theme: ThemeValue;
+  tokens: ThemeTokens;
   setThemeId: (id: ThemeId) => void;
 };
 
@@ -36,7 +37,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const theme = useMemo(() => themes[themeId], [themeId]);
 
-  const value = useMemo(() => ({ themeId, theme, setThemeId }), [themeId, theme, setThemeId]);
+  const value = useMemo(
+    () => ({ themeId, theme, tokens: theme.tokens, setThemeId }),
+    [themeId, theme, setThemeId]
+  );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
@@ -53,30 +57,21 @@ export const useTheme = () => {
 };
 
 export const useTokens = () => {
-  const { themeId, theme } = useThemeCtx();
-  const cardShadow = themeId === 'white'
-    ? {
-        shadowColor: '#000000',
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 6 },
-        elevation: 6,
-      }
-    : tokens.card.shadow;
+  const { tokens } = useThemeCtx();
 
   return {
-    bg: theme.bg,
-    cardBg: theme.cardBg,
-    text: theme.textPrimary,
-    subtext: theme.textSecondary,
-    accent: theme.accent,
-    accentSoft: theme.accentSoft,
-    border: theme.border,
-    tabBarBg: theme.tabBarBg,
-    tabBarActive: theme.tabBarActive,
-    tabBarInactive: theme.tabBarInactive,
-    statusBarStyle: theme.statusBarStyle,
-    cardShadow,
-    cardRadius: tokens.card.radius,
+    bg: tokens.bg,
+    cardBg: tokens.cardBg,
+    text: tokens.textPrimary,
+    subtext: tokens.textSecondary,
+    accent: tokens.accent,
+    accentSoft: tokens.accentSoft,
+    border: tokens.border,
+    tabBarBg: tokens.tabBarBg,
+    tabBarActive: tokens.tabBarActive,
+    tabBarInactive: tokens.tabBarInactive,
+    statusBarStyle: tokens.statusBarStyle,
+    cardShadow: tokens.cardShadow,
+    cardRadius: tokens.cardRadius,
   };
 };
