@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
 import { tokens } from '@/src/theme/tokens';
+import { useTokens } from '@/src/contexts/theme';
 
 type StatCardProps = {
   value: string | number;
@@ -10,6 +11,7 @@ type StatCardProps = {
 
 export default function StatCard({ value, caption, onPress }: StatCardProps) {
   const [pressed, setPressed] = React.useState(false);
+  const themeTokens = useTokens();
 
   const Container = onPress ? Pressable : View;
 
@@ -20,11 +22,20 @@ export default function StatCard({ value, caption, onPress }: StatCardProps) {
       onPressOut={() => setPressed(false)}
       style={[
         styles.container,
+        {
+          backgroundColor: themeTokens.cardBg,
+          borderColor: themeTokens.border,
+          shadowColor: themeTokens.cardShadow.shadowColor,
+          shadowOpacity: themeTokens.cardShadow.shadowOpacity,
+          shadowRadius: themeTokens.cardShadow.shadowRadius,
+          shadowOffset: themeTokens.cardShadow.shadowOffset,
+          elevation: themeTokens.cardShadow.elevation,
+        },
         pressed && styles.pressed,
       ]}
     >
-      <Text style={styles.value}>{value}</Text>
-      <Text style={styles.caption}>{caption}</Text>
+      <Text style={[styles.value, { color: themeTokens.text }]}>{value}</Text>
+      <Text style={[styles.caption, { color: themeTokens.subtext }]}>{caption}</Text>
     </Container>
   );
 }
@@ -34,19 +45,12 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 104,
     minHeight: 94,
-    backgroundColor: tokens.card.bg,
     borderRadius: tokens.card.radius,
     borderWidth: 1,
-    borderColor: tokens.card.border,
     paddingVertical: tokens.spacing.lg,
     paddingHorizontal: tokens.spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: tokens.card.shadow.color,
-    shadowOffset: tokens.card.shadow.offset,
-    shadowOpacity: tokens.card.shadow.opacity,
-    shadowRadius: tokens.card.shadow.radius,
-    elevation: 6,
     ...Platform.select({
       web: {
         backdropFilter: 'blur(10px)',

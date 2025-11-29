@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { TrendingUp, TrendingDown, Trophy } from 'lucide-react-native';
 import { tokens } from '@/src/theme/tokens';
+import { useTokens } from '@/src/contexts/theme';
 
 type MatchResult = 'W' | 'L';
 
@@ -30,52 +31,65 @@ type GamesStatsPanelProps = {
 };
 
 export default function GamesStatsPanel({ summary, recent }: GamesStatsPanelProps) {
+  const themeTokens = useTokens();
+
   return (
     <View style={styles.container}>
       <View style={styles.summaryGrid}>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Win Rate</Text>
-          <Text style={styles.summaryValue}>{summary.winrate.toFixed(1)}%</Text>
+        <View style={[styles.summaryCard, { backgroundColor: themeTokens.cardBg, borderColor: themeTokens.border }]}>
+          <Text style={[styles.summaryLabel, { color: themeTokens.subtext }]}>Win Rate</Text>
+          <Text style={[styles.summaryValue, { color: themeTokens.text }]}>{summary.winrate.toFixed(1)}%</Text>
         </View>
 
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>W / L</Text>
-          <Text style={styles.summaryValue}>{summary.wins} / {summary.losses}</Text>
+        <View style={[styles.summaryCard, { backgroundColor: themeTokens.cardBg, borderColor: themeTokens.border }]}>
+          <Text style={[styles.summaryLabel, { color: themeTokens.subtext }]}>W / L</Text>
+          <Text style={[styles.summaryValue, { color: themeTokens.text }]}>{summary.wins} / {summary.losses}</Text>
         </View>
 
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>NFT Won</Text>
-          <Text style={[styles.summaryValue, { color: '#3AFFFF' }]}>+{summary.nftWon}</Text>
+        <View style={[styles.summaryCard, { backgroundColor: themeTokens.cardBg, borderColor: themeTokens.border }]}>
+          <Text style={[styles.summaryLabel, { color: themeTokens.subtext }]}>NFT Won</Text>
+          <Text style={[styles.summaryValue, { color: themeTokens.accent }]}>+{summary.nftWon}</Text>
         </View>
 
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>NFT Lost</Text>
-          <Text style={[styles.summaryValue, { color: '#FF4D7A' }]}>-{summary.nftLost}</Text>
+        <View style={[styles.summaryCard, { backgroundColor: themeTokens.cardBg, borderColor: themeTokens.border }]}>
+          <Text style={[styles.summaryLabel, { color: themeTokens.subtext }]}>NFT Lost</Text>
+          <Text style={[styles.summaryValue, { color: tokens.danger }]}>-{summary.nftLost}</Text>
         </View>
       </View>
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: themeTokens.border }]} />
 
-      <Text style={styles.recentTitle}>Recent Matches</Text>
+      <Text style={[styles.recentTitle, { color: themeTokens.text }]}>Recent Matches</Text>
 
       <View style={styles.matchesList}>
         {recent.map((match) => (
-          <View key={match.id} style={styles.matchRow}>
+          <View
+            key={match.id}
+            style={[
+              styles.matchRow,
+              {
+                backgroundColor: themeTokens.cardBg,
+                borderColor: themeTokens.border,
+              },
+            ]}
+          >
             <View style={styles.matchLeft}>
               <View style={[
-                styles.resultBadge, 
-                match.result === 'W' ? styles.resultWin : styles.resultLoss
+                styles.resultBadge,
+                match.result === 'W'
+                  ? [styles.resultWin, { backgroundColor: themeTokens.accent }]
+                  : styles.resultLoss
               ]}>
                 {match.result === 'W' ? (
-                  <Trophy color="#0F1419" size={14} strokeWidth={2.5} />
+                  <Trophy color={themeTokens.text} size={14} strokeWidth={2.5} />
                 ) : (
-                  <Text style={styles.resultText}>L</Text>
+                  <Text style={[styles.resultText, { color: themeTokens.text }]}>L</Text>
                 )}
               </View>
-              
+
               <View style={styles.matchInfo}>
-                <Text style={styles.fanName}>{match.fan}</Text>
-                <Text style={styles.matchDate}>{match.date}</Text>
+                <Text style={[styles.fanName, { color: themeTokens.text }]}>{match.fan}</Text>
+                <Text style={[styles.matchDate, { color: themeTokens.subtext }]}>{match.date}</Text>
               </View>
             </View>
 
@@ -83,23 +97,27 @@ export default function GamesStatsPanel({ summary, recent }: GamesStatsPanelProp
               {match.nftChange !== 0 && (
                 <View style={[
                   styles.nftBadge,
-                  match.nftChange > 0 ? styles.nftPositive : styles.nftNegative
+                  match.nftChange > 0
+                    ? [styles.nftPositive, { backgroundColor: themeTokens.accentSoft }]
+                    : [styles.nftNegative, { backgroundColor: 'rgba(255, 77, 122, 0.15)' }]
                 ]}>
-                  <Text style={styles.nftText}>
+                  <Text style={[styles.nftText, { color: themeTokens.text }]}>
                     {match.nftChange > 0 ? '+' : ''}{match.nftChange} NFT
                   </Text>
                 </View>
               )}
-              
+
               <View style={styles.creditsContainer}>
                 {match.credits > 0 ? (
-                  <TrendingUp color="#3AFFFF" size={16} strokeWidth={2.5} />
+                  <TrendingUp color={themeTokens.accent} size={16} strokeWidth={2.5} />
                 ) : (
-                  <TrendingDown color="#FF4D7A" size={16} strokeWidth={2.5} />
+                  <TrendingDown color={tokens.danger} size={16} strokeWidth={2.5} />
                 )}
                 <Text style={[
                   styles.creditsValue,
-                  match.credits > 0 ? styles.creditsPositive : styles.creditsNegative
+                  match.credits > 0
+                    ? [styles.creditsPositive, { color: themeTokens.accent }]
+                    : [styles.creditsNegative, { color: tokens.danger }]
                 ]}>
                   {match.credits > 0 ? '+' : ''}{match.credits}
                 </Text>

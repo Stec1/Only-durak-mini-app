@@ -17,14 +17,14 @@ export default function GlassCard({ children, style, padding = tokens.spacing.lg
       style={[
         {
           backgroundColor: themeTokens.cardBg,
-          borderRadius: tokens.card.radius,
+          borderRadius: themeTokens.cardRadius,
           borderWidth: 1,
           borderColor: themeTokens.border,
-          shadowColor: '#000',
-          shadowOpacity: 0.25,
-          shadowRadius: 16,
-          shadowOffset: { width: 0, height: 8 },
-          elevation: 8,
+          shadowColor: themeTokens.cardShadow.shadowColor,
+          shadowOpacity: themeTokens.cardShadow.shadowOpacity,
+          shadowRadius: themeTokens.cardShadow.shadowRadius,
+          shadowOffset: themeTokens.cardShadow.shadowOffset,
+          elevation: themeTokens.cardShadow.elevation,
           padding,
           ...Platform.select({
             web: {

@@ -53,13 +53,30 @@ export const useTheme = () => {
 };
 
 export const useTokens = () => {
-  const { theme } = useThemeCtx();
+  const { themeId, theme } = useThemeCtx();
+  const cardShadow = themeId === 'white'
+    ? {
+        shadowColor: '#000000',
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 6,
+      }
+    : tokens.card.shadow;
+
   return {
     bg: theme.bg,
     cardBg: theme.cardBg,
     text: theme.textPrimary,
     subtext: theme.textSecondary,
     accent: theme.accent,
+    accentSoft: theme.accentSoft,
     border: theme.border,
+    tabBarBg: theme.tabBarBg,
+    tabBarActive: theme.tabBarActive,
+    tabBarInactive: theme.tabBarInactive,
+    statusBarStyle: theme.statusBarStyle,
+    cardShadow,
+    cardRadius: tokens.card.radius,
   };
 };

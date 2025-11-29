@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ArrowRight } from 'lucide-react-native';
 import { tokens } from '@/src/theme/tokens';
+import { useTokens } from '@/src/contexts/theme';
 import { SuitSpade } from '@/components/suits/Spade';
 import { SuitHeart } from '@/components/suits/Heart';
 import JokerTile from '@/components/JokerTile';
@@ -12,6 +13,8 @@ type JokersPanelProps = {
 };
 
 export default function JokersPanel({ jokers, onOpenCollection }: JokersPanelProps) {
+  const themeTokens = useTokens();
+
   return (
     <View style={styles.container}>
       <View style={styles.tilesRow}>
@@ -20,7 +23,7 @@ export default function JokersPanel({ jokers, onOpenCollection }: JokersPanelPro
           storageKey="joker_black_uri"
           iconComponent={
             <View style={styles.jokerIcon}>
-              <SuitSpade size={32} color="#3AFFFF" />
+              <SuitSpade size={32} color={themeTokens.accent} />
             </View>
           }
         />
@@ -29,19 +32,25 @@ export default function JokersPanel({ jokers, onOpenCollection }: JokersPanelPro
           storageKey="joker_red_uri"
           iconComponent={
             <View style={styles.jokerIcon}>
-              <SuitHeart size={32} color="#3AFFFF" />
+              <SuitHeart size={32} color={themeTokens.accent} />
             </View>
           }
         />
       </View>
 
-      <TouchableOpacity 
-        style={styles.collectionButton}
+      <TouchableOpacity
+        style={[
+          styles.collectionButton,
+          {
+            backgroundColor: themeTokens.accentSoft,
+            borderColor: themeTokens.accent,
+          },
+        ]}
         onPress={onOpenCollection}
         activeOpacity={0.7}
       >
-        <Text style={styles.collectionButtonText}>Open Collection</Text>
-        <ArrowRight color={tokens.text.primary} size={18} strokeWidth={2.5} />
+        <Text style={[styles.collectionButtonText, { color: themeTokens.text }]}>Open Collection</Text>
+        <ArrowRight color={themeTokens.text} size={18} strokeWidth={2.5} />
       </TouchableOpacity>
     </View>
   );
@@ -74,13 +83,10 @@ const styles = StyleSheet.create({
     paddingVertical: tokens.spacing.sm + 2,
     paddingHorizontal: tokens.spacing.md,
     borderRadius: 12,
-    backgroundColor: 'rgba(58, 255, 255, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(58, 255, 255, 0.2)',
     marginTop: tokens.spacing.xs,
   },
   collectionButtonText: {
-    color: tokens.text.primary,
     fontSize: 15,
     fontWeight: '700',
   },

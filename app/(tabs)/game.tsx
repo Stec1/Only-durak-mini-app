@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -45,6 +45,7 @@ export default function GameTab() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const themeTokens = useTokens();
+  const styles = useMemo(() => createStyles(themeTokens), [themeTokens]);
   const { rooms, myRoom, phase, actions } = useGameStore();
 
   useEffect(() => {
@@ -104,7 +105,7 @@ export default function GameTab() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (themeTokens: ReturnType<typeof useTokens>) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -114,18 +115,20 @@ const styles = StyleSheet.create({
   },
   title: {
     ...tokens.typography.h1,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     marginBottom: tokens.spacing.xl,
   },
   infoCard: {
-    backgroundColor: '#2A222D',
+    backgroundColor: themeTokens.cardBg,
     borderRadius: tokens.borderRadius.xl,
     padding: tokens.spacing.xl,
     marginBottom: tokens.spacing.lg,
+    borderWidth: 1,
+    borderColor: themeTokens.border,
   },
   infoText: {
     ...tokens.typography.body,
-    color: 'rgba(230, 231, 235, 0.8)',
+    color: themeTokens.subtext,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -136,13 +139,13 @@ const styles = StyleSheet.create({
   btnPrimary: {
     height: 54,
     borderRadius: 999,
-    backgroundColor: '#19E3E3',
+    backgroundColor: themeTokens.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: tokens.spacing.md,
   },
   btnPrimaryText: {
-    color: '#000000',
+    color: themeTokens.bg,
     fontSize: 16,
     fontWeight: '700' as const,
   },
@@ -150,19 +153,19 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#19E3E3',
+    borderColor: themeTokens.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: tokens.spacing.sm,
   },
   btnOutlineText: {
-    color: '#19E3E3',
+    color: themeTokens.accent,
     fontSize: 16,
     fontWeight: '600' as const,
   },
   sectionTitle: {
     ...tokens.typography.h4,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     fontWeight: '600' as const,
     marginBottom: tokens.spacing.md,
   },
@@ -170,20 +173,22 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   roomCard: {
-    backgroundColor: '#241F28',
+    backgroundColor: themeTokens.cardBg,
     borderRadius: tokens.borderRadius.xl,
     padding: tokens.spacing.lg,
     marginBottom: tokens.spacing.md,
+    borderWidth: 1,
+    borderColor: themeTokens.border,
   },
   roomName: {
     ...tokens.typography.h4,
-    color: tokens.text.primary,
+    color: themeTokens.text,
     fontWeight: '600' as const,
     marginBottom: tokens.spacing.xs,
   },
   roomDetails: {
     ...tokens.typography.caption,
-    color: 'rgba(230, 231, 235, 0.6)',
+    color: themeTokens.subtext,
     marginBottom: tokens.spacing.md,
   },
   roomBtnContainer: {
@@ -191,7 +196,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...tokens.typography.body,
-    color: 'rgba(230, 231, 235, 0.5)',
+    color: themeTokens.subtext,
     textAlign: 'center',
     marginTop: tokens.spacing.xl,
   },

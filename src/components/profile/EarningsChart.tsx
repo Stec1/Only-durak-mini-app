@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { tokens } from '@/src/theme/tokens';
+import { useTokens } from '@/src/contexts/theme';
 
 type DataPoint = {
   x: string;
@@ -16,6 +17,7 @@ type EarningsChartProps = {
 };
 
 export default function EarningsChart({ data, total, week, month }: EarningsChartProps) {
+  const themeTokens = useTokens();
   const chartWidth = Dimensions.get('window').width - 64;
   const chartHeight = 160;
   const padding = { top: 20, bottom: 30, left: 20, right: 20 };
@@ -50,20 +52,20 @@ export default function EarningsChart({ data, total, week, month }: EarningsChar
         <View style={styles.kpiRow}>
           {total !== undefined && (
             <View style={styles.kpiItem}>
-              <Text style={styles.kpiLabel}>Total</Text>
-              <Text style={styles.kpiValue}>{total}</Text>
+              <Text style={[styles.kpiLabel, { color: themeTokens.subtext }]}>Total</Text>
+              <Text style={[styles.kpiValue, { color: themeTokens.text }]}>{total}</Text>
             </View>
           )}
           {week !== undefined && (
             <View style={styles.kpiItem}>
-              <Text style={styles.kpiLabel}>7d</Text>
-              <Text style={styles.kpiValue}>{week}</Text>
+              <Text style={[styles.kpiLabel, { color: themeTokens.subtext }]}>7d</Text>
+              <Text style={[styles.kpiValue, { color: themeTokens.text }]}>{week}</Text>
             </View>
           )}
           {month !== undefined && (
             <View style={styles.kpiItem}>
-              <Text style={styles.kpiLabel}>30d</Text>
-              <Text style={styles.kpiValue}>{month}</Text>
+              <Text style={[styles.kpiLabel, { color: themeTokens.subtext }]}>30d</Text>
+              <Text style={[styles.kpiValue, { color: themeTokens.text }]}>{month}</Text>
             </View>
           )}
         </View>
@@ -73,8 +75,8 @@ export default function EarningsChart({ data, total, week, month }: EarningsChar
         <Svg width={chartWidth} height={chartHeight}>
           <Defs>
             <LinearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <Stop offset="0%" stopColor="#3AFFFF" stopOpacity="0.4" />
-              <Stop offset="100%" stopColor="#3AFFFF" stopOpacity="0.05" />
+              <Stop offset="0%" stopColor={themeTokens.accent} stopOpacity="0.4" />
+              <Stop offset="100%" stopColor={themeTokens.accent} stopOpacity="0.05" />
             </LinearGradient>
           </Defs>
           
@@ -85,7 +87,7 @@ export default function EarningsChart({ data, total, week, month }: EarningsChar
           
           <Path
             d={pathData}
-            stroke="#3AFFFF"
+            stroke={themeTokens.accent}
             strokeWidth={2.5}
             fill="none"
           />
@@ -108,7 +110,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   kpiLabel: {
-    color: tokens.text.secondary,
     fontSize: 12,
     fontWeight: '600',
     textTransform: 'uppercase',
@@ -116,7 +117,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   kpiValue: {
-    color: tokens.text.primary,
     fontSize: 22,
     fontWeight: '800',
   },
