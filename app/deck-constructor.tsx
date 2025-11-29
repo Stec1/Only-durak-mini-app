@@ -3,12 +3,13 @@ import { View, Text, StyleSheet, FlatList, Pressable, Alert, Dimensions, Modal, 
 import { Stack, router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import ODCard from '@/components/ODCard';
-import { RANKS, SUITS, cardKey, loadDeck, type DeckMap, type Rank, type Suit } from '@/utils/deck';
+import { RANKS, SUITS, cardKey, type Rank, type Suit } from '@/utils/deck';
 import { isModel, getUser } from '@/store/user';
 import { saveDeck as saveNewDeck } from '@/storage/decks';
 import { Deck, CardKey } from '@/types/deck';
 import GlassCard from '@/components/GlassCard';
 import { pickImageNoCrop } from '@/src/utils/imagePicker';
+import { useDraftDeckActions, useDraftDeckStore } from '@/src/state/deckDraftStore';
 
 function DeckSlot({ suit, rank, uri, onPick }: { suit: Suit; rank: Rank; uri?: string | null; onPick: () => void }) {
   const screenWidth = Dimensions.get('window').width;
@@ -20,12 +21,14 @@ function DeckSlot({ suit, rank, uri, onPick }: { suit: Suit; rank: Rank; uri?: s
 }
 
 export default function DeckConstructorScreen() {
-  const [deck, setDeck] = useState<DeckMap>({} as DeckMap);
   const [ready, setReady] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
-  const [deckName, setDeckName] = useState('My Custom Deck');
-  const [backUri, setBackUri] = useState<string>('');
   const [refresh, setRefresh] = useState(false);
+
+  const deck = useDraftDeckStore((state) => state.deck);
+  const deckName = useDraftDeckStore((state) => state.deckName);
+  const backUri = useDraftDeckStore((state) => state.backUri);
+  const actions = useDraftDeckActions();
 
   useEffect(() => {
     if (!isModel()) {
@@ -35,8 +38,6 @@ export default function DeckConstructorScreen() {
     }
     (async () => {
       await ImagePicker.requestMediaLibraryPermissionsAsync();
-      const d = await loadDeck();
-      setDeck(d);
       setReady(true);
     })();
   }, []);
@@ -53,12 +54,12 @@ export default function DeckConstructorScreen() {
       const uri = await pickImageNoCrop();
       if (uri) {
         const k = cardKey(rank, suit);
-        setDeck(prev => ({ ...prev, [k]: uri }));
+        actions.setCardImage(k, uri);
       }
     } catch (e) {
       console.warn('Image pick cancelled:', e);
     }
-  }, []);
+  }, [actions]);
 
   const onSave = useCallback(() => {
     if (!isModel()) return;
@@ -74,12 +75,12 @@ export default function DeckConstructorScreen() {
     try {
       const uri = await pickImageNoCrop();
       if (uri) {
-        setBackUri(uri);
+        actions.setBackUri(uri);
       }
     } catch (e) {
       console.warn('Back image pick cancelled:', e);
     }
-  }, []);
+  }, [actions]);
 
   const confirmSave = useCallback(async () => {
     if (!isModel()) return;
@@ -112,6 +113,7 @@ export default function DeckConstructorScreen() {
 
     try {
       await saveNewDeck(user.username, newDeck);
+      actions.resetDraft();
       setShowSaveModal(false);
       Alert.alert('Success', 'Your deck has been saved!', [
         { text: 'OK', onPress: () => router.back() }
@@ -120,7 +122,7 @@ export default function DeckConstructorScreen() {
       console.error('Save deck error:', err);
       Alert.alert('Error', 'Failed to save deck. Please try again.');
     }
-  }, [deckName, backUri, deck]);
+  }, [deckName, backUri, deck, actions]);
 
   if (!isModel()) return null;
 
@@ -177,7 +179,7 @@ export default function DeckConstructorScreen() {
               <TextInput
                 style={styles.modalInput}
                 value={deckName}
-                onChangeText={setDeckName}
+                onChangeText={actions.setDeckName}
                 placeholder="Enter deck name"
                 placeholderTextColor="#666"
               />

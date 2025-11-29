@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View, ScrollView, Platform, TouchableOpacity, Modal, Pressable, FlatList, Alert, TextInput } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { Users, LogOut, Package, Settings, ChevronRight, RotateCcw, Trophy, TrendingUp, Flame, Lightbulb } from 'lucide-react-native';
+import { Users, LogOut, Settings, ChevronRight, RotateCcw, Trophy, TrendingUp, Flame, Lightbulb } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/auth';
 import { useTokens } from '@/src/contexts/theme';
 import { useRouter } from 'expo-router';
-import { loadDeck, saveDeck, DECK_KEYS, type DeckMap } from '@/utils/deck';
 import { getDecks, saveDeck as updateDeck, deleteDeck } from '@/storage/decks';
 import { Deck } from '@/types/deck';
 import { DeckThumb } from '@/components/DeckThumb';
@@ -25,6 +24,8 @@ import JokersPanel from '@/src/components/profile/JokersPanel';
 import GamesStatsPanel from '@/src/components/profile/GamesStatsPanel';
 import { mockEarnings, mockSummary, mockRecent, mockJokers } from '@/src/data/profileMocks';
 import ThemePickerSheet from '@/src/components/ThemePickerSheet';
+import DeckConstructorPreviewCard from '@/components/DeckConstructorPreviewCard';
+import { useDraftDeck, useDraftDeckActions } from '@/src/state/deckDraftStore';
 
 
 
@@ -42,8 +43,6 @@ export default function ProfileScreen() {
   const roleBadgeLabel = `${roleLabel} account`;
   const userIdForDeck = user?.id || 'Model';
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
-  const [deck, setDeck] = useState<DeckMap | null>(null);
-  const [deckProgress, setDeckProgress] = useState({ filled: 0, total: DECK_KEYS.length });
   const [decks, setDecks] = useState<Deck[]>([]);
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
@@ -51,6 +50,8 @@ export default function ProfileScreen() {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [openAccordion, setOpenAccordion] = useState<'games' | 'earnings' | 'jokers' | null>(null);
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const { totalSelected: draftCount } = useDraftDeck();
+  const draftActions = useDraftDeckActions();
 
   useEffect(() => {
     if (!user) {
@@ -60,11 +61,6 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (role === 'model') {
-      loadDeck().then((loaded) => {
-        setDeck(loaded);
-        const filled = Object.values(loaded).filter((uri) => uri !== null).length;
-        setDeckProgress({ filled, total: DECK_KEYS.length });
-      });
       getDecks(userIdForDeck).then(setDecks);
     }
   }, [role, userIdForDeck]);
@@ -86,11 +82,8 @@ export default function ProfileScreen() {
         {
           text: 'Reset',
           style: 'destructive',
-          onPress: async () => {
-            const emptyDeck = Object.fromEntries(DECK_KEYS.map(k => [k, null])) as DeckMap;
-            await saveDeck(emptyDeck);
-            setDeck(emptyDeck);
-            setDeckProgress({ filled: 0, total: DECK_KEYS.length });
+          onPress: () => {
+            draftActions.resetDraft();
             Alert.alert('Success', 'Your deck has been reset.');
           },
         },
@@ -320,27 +313,13 @@ export default function ProfileScreen() {
 
         {isModel ? (
           <>
-            <GlassCard style={styles.actionCard}>
-              <TouchableOpacity 
-                style={styles.actionButton} 
-                activeOpacity={0.7}
-                onPress={() => router.push('/deck-constructor')}
-              >
-                <View style={styles.actionContent}>
-                  <View style={styles.actionLeft}>
-                    <View style={styles.actionIconWrapper}>
-                      <Package color={themeTokens.accent} size={24} strokeWidth={2.5} />
-                    </View>
-                    <Text style={styles.actionTitle}>Open Deck Constructor</Text>
-                  </View>
-                  <ChevronRight color={themeTokens.text} size={20} strokeWidth={2.5} />
-                </View>
-              </TouchableOpacity>
-            </GlassCard>
+            <View style={styles.actionCard}>
+              <DeckConstructorPreviewCard onPress={() => router.push('/deck-constructor')} />
+            </View>
 
             <GlassCard style={styles.actionCard}>
-              <TouchableOpacity 
-                style={styles.actionButton} 
+              <TouchableOpacity
+                style={styles.actionButton}
                 activeOpacity={0.7}
                 onPress={async () => {
                   if (Platform.OS !== 'web') {
@@ -384,10 +363,10 @@ export default function ProfileScreen() {
           </>
         )}
 
-        {isModel && deckProgress.filled > 0 && (
+        {isModel && draftCount > 0 && (
           <>
             <View style={{ height: spacing.md }} />
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.resetButton}
               activeOpacity={0.7}
               onPress={handleResetDeck}
