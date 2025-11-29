@@ -12,7 +12,6 @@ import { useFonts } from 'expo-font';
 import { Allura_400Regular } from '@expo-google-fonts/allura';
 import { Orbitron_800ExtraBold } from '@expo-google-fonts/orbitron';
 import { colors } from '@/constants/tokens';
-import { tokens } from '@/src/theme/tokens';
 import GradientBackground from '@/components/GradientBackground';
 import DnaConsentModal from '@/components/DnaConsentModal';
 import { setStoredDnaAccepted } from '@/storage/auth';
@@ -49,6 +48,7 @@ function RootContent() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
+        <StatusBar barStyle={theme.statusBarStyle} backgroundColor={theme.bg} />
         <GradientBackground />
         <View style={{ flex: 1 }}>
           <RootLayoutNav />
@@ -63,6 +63,7 @@ function RootLayoutNav() {
   const { user, isLoading, dnaAccepted } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { theme } = useThemeCtx();
 
   useEffect(() => {
     if (isLoading) return;
@@ -86,19 +87,18 @@ function RootLayoutNav() {
   }, [dnaAccepted, isLoading, router, segments, user]);
 
   return (
-    <Stack 
+    <Stack
       screenOptions={{
         headerBackTitle: "Back",
         animation: "fade",
         headerShown: false,
-        contentStyle: { backgroundColor: '#0E0F12' },
+        contentStyle: { backgroundColor: theme.bg },
       }}
     >
       <Stack.Screen name="register" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="deck-constructor" options={{ headerShown: true }} />
-      <Stack.Screen name="about" options={{ headerShown: false }} />
       <Stack.Screen name="game/create" options={{ presentation: "modal", headerShown: false }} />
       <Stack.Screen name="game/join" options={{ presentation: "modal", headerShown: false }} />
       <Stack.Screen name="game/quick" options={{ headerShown: false }} />
@@ -133,7 +133,6 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={tokens.bg.base} />
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>

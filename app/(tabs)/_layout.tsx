@@ -1,17 +1,20 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { User, Spade, Flame } from 'lucide-react-native';
+import { useThemeCtx } from '@/src/contexts/theme';
 
 export default function TabsLayout() {
+  const { theme } = useThemeCtx();
+
   return (
     <Tabs
       initialRouteName="home"
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: '#0E0F12', borderTopColor: 'rgba(255,255,255,0.06)' },
-        sceneStyle: { backgroundColor: '#0E0F12' },
-        tabBarActiveTintColor: '#00E6E6',
-        tabBarInactiveTintColor: '#9BA0A6',
+        tabBarStyle: { backgroundColor: theme.tabBarBg, borderTopColor: theme.border },
+        sceneStyle: { backgroundColor: theme.bg },
+        tabBarActiveTintColor: theme.tabBarActive,
+        tabBarInactiveTintColor: theme.tabBarInactive,
       }}
     >
       <Tabs.Screen
