@@ -1,106 +1,118 @@
-import React from 'react';
-import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import GlassCard from '@/components/GlassCard';
+import HoloButton from '@/components/HoloButton';
 import { tokens } from '@/src/theme/tokens';
-import { Info } from 'lucide-react-native';
-import Screen from '@/src/components/ui/Screen';
+import { useTokens } from '@/src/contexts/theme';
 
 export default function QuickPlay() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const themeTokens = useTokens();
+  const styles = useMemo(() => createStyles(themeTokens), [themeTokens]);
+
+  const handleFindGame = useCallback(() => {
+    router.push('/game/room' as any);
+  }, [router]);
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
 
   return (
-    <Screen style={styles.content}>
-        {Platform.OS === 'web' && (
-          <View style={styles.infoBanner}>
-            <Info color="#19E3E3" size={20} strokeWidth={2.5} />
-            <Text style={styles.infoText}>
-              Multiplayer disabled on Web preview
+    <View style={[styles.container, { backgroundColor: themeTokens.bg }]}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: insets.top + tokens.spacing.xl,
+              paddingBottom: insets.bottom + tokens.spacing['2xl'],
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          <GlassCard style={styles.card}>
+            <Text style={styles.label}>QUICK PLAY</Text>
+            <Text style={styles.title}>Jump into Room 3</Text>
+            <Text style={[styles.subtitle, { color: themeTokens.subtext }]}>
+              Join the first available Room 3 or automatically create a new match.
             </Text>
-          </View>
-        )}
 
-        <Text style={styles.title}>Quick Play</Text>
-        <Text style={styles.description}>
-          Join the first available room or create a new one automatically.
-        </Text>
+            <HoloButton title="Find Game" onPress={handleFindGame} style={styles.primaryButton} />
 
-        <View style={styles.buttonsContainer}>
-          <Pressable
-            style={styles.btnPrimary}
-            onPress={() => router.push('/game/room' as any)}
-          >
-            <Text style={styles.btnPrimaryText}>Find Game</Text>
-          </Pressable>
+            <TouchableOpacity onPress={handleBack} style={[styles.secondaryButton, { borderColor: themeTokens.border }]}>
+              <Text style={[styles.secondaryText, { color: themeTokens.accent }]}>Back to Game hub</Text>
+            </TouchableOpacity>
 
-          <Pressable
-            style={styles.btnOutline}
-            onPress={() => router.back()}
-          >
-            <Text style={styles.btnOutlineText}>Back</Text>
-          </Pressable>
-        </View>
-    </Screen>
+            <View style={[styles.metaPill, { borderColor: themeTokens.border, backgroundColor: themeTokens.cardBg }]}>
+              <Text style={[styles.metaText, { color: themeTokens.subtext }]}>1 Model • 2 Fans • 5 Games • 10 credits per loss</Text>
+            </View>
+          </GlassCard>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    padding: tokens.spacing.lg,
-  },
-  infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tokens.spacing.md,
-    backgroundColor: 'rgba(25, 227, 227, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(25, 227, 227, 0.3)',
-    borderRadius: tokens.borderRadius.lg,
-    padding: tokens.spacing.md,
-    marginBottom: tokens.spacing.lg,
-  },
-  infoText: {
-    flex: 1,
-    color: '#19E3E3',
-    fontSize: 14,
-    fontWeight: '500' as const,
-  },
-  title: {
-    ...tokens.typography.h1,
-    color: tokens.text.primary,
-    marginBottom: tokens.spacing.md,
-  },
-  description: {
-    ...tokens.typography.body,
-    color: 'rgba(230, 231, 235, 0.7)',
-    lineHeight: 22,
-    marginBottom: tokens.spacing.xl,
-  },
-  buttonsContainer: {
-    gap: tokens.spacing.md,
-  },
-  btnPrimary: {
-    height: 54,
-    borderRadius: 999,
-    backgroundColor: '#19E3E3',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnPrimaryText: {
-    color: '#000000',
-    fontSize: 16,
-    fontWeight: '700' as const,
-  },
-  btnOutline: {
-    height: 54,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#19E3E3',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnOutlineText: {
-    color: '#19E3E3',
-    fontSize: 16,
-    fontWeight: '600' as const,
-  },
-});
+const createStyles = (themeTokens: ReturnType<typeof useTokens>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    scroll: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: tokens.spacing.lg,
+    },
+    card: {
+      gap: tokens.spacing.lg,
+    },
+    label: {
+      ...tokens.typography.meta,
+      color: themeTokens.subtext,
+      letterSpacing: 1,
+    },
+    title: {
+      ...tokens.typography.h2,
+      color: themeTokens.text,
+    },
+    subtitle: {
+      ...tokens.typography.body,
+      lineHeight: 22,
+    },
+    primaryButton: {
+      width: '100%',
+    },
+    secondaryButton: {
+      width: '100%',
+      paddingVertical: tokens.spacing.md,
+      borderRadius: tokens.borderRadius.lg,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: themeTokens.bg,
+    },
+    secondaryText: {
+      ...tokens.typography.h4,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    metaPill: {
+      paddingVertical: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.md,
+      borderRadius: tokens.borderRadius.xl,
+      borderWidth: 1,
+      alignSelf: 'flex-start',
+    },
+    metaText: {
+      ...tokens.typography.caption,
+    },
+  });
