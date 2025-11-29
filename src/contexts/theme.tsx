@@ -19,7 +19,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     (async () => {
       try {
         const saved = await AsyncStorage.getItem(STORAGE_KEY);
-        if (saved && (saved in themes)) setThemeIdState(saved as ThemeId);
+        if (saved && (saved in themes)) {
+          setThemeIdState(saved as ThemeId);
+        } else if (saved) {
+          setThemeIdState(DEFAULT_ID);
+          AsyncStorage.setItem(STORAGE_KEY, DEFAULT_ID).catch(() => {});
+        }
       } catch {}
     })();
   }, []);
@@ -55,6 +60,6 @@ export const useTokens = () => {
     text: theme.textPrimary,
     subtext: theme.textSecondary,
     accent: theme.accent,
-    border: 'rgba(255,255,255,0.08)',
+    border: theme.border,
   };
 };

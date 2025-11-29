@@ -1,4 +1,4 @@
-export type ThemeId = 'dark' | 'burgundy' | 'billiard' | 'softpink';
+export type ThemeId = 'dark' | 'white' | 'softpink';
 
 export type ThemeValue = {
   name: string;
@@ -7,6 +7,12 @@ export type ThemeValue = {
   textPrimary: string;
   textSecondary: string;
   accent: string;
+  accentSoft: string;
+  border: string;
+  tabBarBg: string;
+  tabBarActive: string;
+  tabBarInactive: string;
+  statusBarStyle: 'light-content' | 'dark-content';
 };
 
 export const themes: Record<ThemeId, ThemeValue> = {
@@ -17,30 +23,40 @@ export const themes: Record<ThemeId, ThemeValue> = {
     textPrimary: '#EDEFF2',
     textSecondary: '#A2A8B3',
     accent: '#42C4FF',
+    accentSoft: '#163244',
+    border: 'rgba(255,255,255,0.08)',
+    tabBarBg: '#0E0F12',
+    tabBarActive: '#42C4FF',
+    tabBarInactive: '#9BA0A6',
+    statusBarStyle: 'light-content',
   },
-  burgundy: {
-    name: 'Burgundy',
-    bg: '#1A0D12',
-    cardBg: '#2A131B',
-    textPrimary: '#F2E9EC',
-    textSecondary: '#C9A7B1',
-    accent: '#FF5C7A',
-  },
-  billiard: {
-    name: 'Billiard',
-    bg: '#0E1411',
-    cardBg: '#15231A',
-    textPrimary: '#EAF3ED',
-    textSecondary: '#B1C7B9',
-    accent: '#48E07C',
+  white: {
+    name: 'White',
+    bg: '#FFFFFF',
+    cardBg: '#F3F4F6',
+    textPrimary: '#0F172A',
+    textSecondary: '#6B7280',
+    accent: '#06B6D4',
+    accentSoft: '#E0F2FE',
+    border: '#E5E7EB',
+    tabBarBg: '#FFFFFF',
+    tabBarActive: '#06B6D4',
+    tabBarInactive: '#9CA3AF',
+    statusBarStyle: 'dark-content',
   },
   softpink: {
     name: 'Soft Pink',
-    bg: '#151217',
-    cardBg: '#241B26',
-    textPrimary: '#FFEAF5',
-    textSecondary: '#E3C9D7',
-    accent: '#FF86C5',
+    bg: '#0B0B10',
+    cardBg: '#251320',
+    textPrimary: '#F9F4F8',
+    textSecondary: '#F5A3C4',
+    accent: '#FF4B8B',
+    accentSoft: '#FF9BC4',
+    border: '#3B2233',
+    tabBarBg: '#0B0B10',
+    tabBarActive: '#FF4B8B',
+    tabBarInactive: '#6B6B7A',
+    statusBarStyle: 'light-content',
   },
 };
 
@@ -48,15 +64,13 @@ export type ThemeName = ThemeId;
 
 export const THEME_SWATCHES: Record<ThemeId, string> = {
   dark: '#0E0F12',
-  burgundy: '#1A0D12',
-  billiard: '#0E1411',
-  softpink: '#151217',
+  white: '#FFFFFF',
+  softpink: '#0B0B10',
 };
 
 export const THEME_LABELS: Record<ThemeId, string> = {
   dark: 'Dark',
-  burgundy: 'Burgundy',
-  billiard: 'Billiard Green',
+  white: 'White',
   softpink: 'Soft Pink',
 };
 

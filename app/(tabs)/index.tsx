@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, Platform, TouchableOpacity, Modal, Pressable, FlatList, Alert, TextInput } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { User, Users, LogOut, Package, Settings, ChevronRight, RotateCcw, Trophy, TrendingUp, Flame, Info, Lightbulb } from 'lucide-react-native';
+import { Users, LogOut, Package, Settings, ChevronRight, RotateCcw, Trophy, TrendingUp, Flame, Lightbulb } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/auth';
 import { useTokens } from '@/src/contexts/theme';
@@ -423,7 +423,7 @@ export default function ProfileScreen() {
 
                 <Divider />
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.sheetOption}
                   activeOpacity={0.7}
                   onPress={() => {
@@ -441,33 +441,7 @@ export default function ProfileScreen() {
 
                 <Divider />
 
-                <TouchableOpacity 
-                  style={styles.sheetOption}
-                  activeOpacity={0.7}
-                  disabled
-                >
-                  <User color={colors.textDim} size={24} strokeWidth={2.5} />
-                  <Text style={[styles.sheetOptionText, styles.disabledText]}>Edit Profile</Text>
-                  <Text style={styles.disabledBadge}>Disabled</Text>
-                </TouchableOpacity>
-
-                <Divider />
-
-                <TouchableOpacity 
-                  style={styles.sheetOption}
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    setShowSettingsSheet(false);
-                    router.push('/about');
-                  }}
-                >
-                  <Info color={colors.text} size={24} strokeWidth={2.5} />
-                  <Text style={styles.sheetOptionText}>About</Text>
-                </TouchableOpacity>
-
-                <Divider />
-
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.sheetOption}
                   activeOpacity={0.7}
                   onPress={handleLogout}
@@ -649,9 +623,6 @@ const styles = StyleSheet.create({
   actionTitle: {
     ...typography.subtitle,
   },
-  disabledText: {
-    color: colors.textDim,
-  },
   footerHint: {
     marginTop: spacing.xl,
     paddingVertical: spacing.lg,
@@ -686,15 +657,6 @@ const styles = StyleSheet.create({
   sheetOptionText: {
     ...typography.subtitle,
     flex: 1,
-  },
-  disabledBadge: {
-    ...typography.meta,
-    fontSize: 11,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.sm,
-    overflow: 'hidden',
   },
   deckCard: {
     marginBottom: spacing.md,
