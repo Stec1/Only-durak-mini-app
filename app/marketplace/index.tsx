@@ -3,7 +3,7 @@ import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
-import { SlidersHorizontal } from 'lucide-react-native';
+import { SlidersHorizontal, X } from 'lucide-react-native';
 
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
@@ -17,15 +17,34 @@ const FILTERS = [
 
 const SCREEN_PADDING = tokens.spacing.lg;
 
+const MOCK_MODEL_ID = '#ALICE-001';
+const MOCK_WALLET = '0x1234...ABCD';
+
 function getToneGradient(tone: JokerSpotlightItem['tone'], theme: ReturnType<typeof useTokens>) {
-  switch (tone) {
-    case 'blue':
-      return [withAlpha(theme.accentBlue, theme.isDark ? 0.25 : 0.18), withAlpha(theme.accent, theme.isDark ? 0.55 : 0.4)];
-    case 'pink':
-      return [withAlpha(theme.accentNeon, theme.isDark ? 0.22 : 0.16), withAlpha(theme.accentSoft, theme.isDark ? 0.5 : 0.38)];
-    default:
-      return [withAlpha(theme.accent, theme.isDark ? 0.24 : 0.18), withAlpha(theme.accentBlue, theme.isDark ? 0.5 : 0.36)];
-  }
+  const darkTop =
+    tone === 'blue'
+      ? withAlpha(theme.accentBlue, 0.42)
+      : tone === 'pink'
+        ? withAlpha(theme.accentNeon, 0.4)
+        : withAlpha(theme.accent, 0.4);
+
+  const darkBottom =
+    tone === 'blue'
+      ? withAlpha(theme.accent, 0.32)
+      : tone === 'pink'
+        ? withAlpha(theme.accentSoft, 0.28)
+        : withAlpha(theme.accentBlue, 0.3);
+
+  const lightTop =
+    tone === 'blue'
+      ? withAlpha(theme.accentNeon, 0.16)
+      : tone === 'pink'
+        ? withAlpha(theme.accentSoft, 0.18)
+        : withAlpha(theme.accent, 0.16);
+
+  const lightBottom = withAlpha(theme.surfaceElevated, 0.92);
+
+  return theme.isDark ? [darkTop, darkBottom] : [lightTop, lightBottom];
 }
 
 function withAlpha(color: string, alpha: number) {
@@ -59,6 +78,7 @@ export default function MarketplaceScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [selectedFilter, setSelectedFilter] = useState<FilterKey>('all');
+  const [isMarketSettingsOpen, setIsMarketSettingsOpen] = useState(false);
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const deckCards = useMemo(() => {
@@ -67,7 +87,7 @@ export default function MarketplaceScreen() {
   }, [selectedFilter]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + tokens.spacing.md }]}> 
+    <View style={[styles.container, { paddingTop: insets.top + tokens.spacing.md }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
         style={styles.scrollView}
@@ -80,13 +100,46 @@ export default function MarketplaceScreen() {
             <Text style={[styles.subtitle, { color: theme.subtext }]}>Trade decks & Jokers</Text>
           </View>
           <Pressable
-            onPress={() => {}}
+            onPress={() => setIsMarketSettingsOpen(true)}
             style={[styles.iconButton, theme.isDark ? styles.iconButtonDark : styles.iconButtonLight]}
             hitSlop={10}
           >
             <SlidersHorizontal color={theme.text} size={20} />
           </Pressable>
         </View>
+
+        {isMarketSettingsOpen && (
+          <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+            <Pressable
+              style={[styles.backdrop, { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.18)' }]}
+              onPress={() => setIsMarketSettingsOpen(false)}
+            />
+            <View
+              style={[
+                styles.settingsPanel,
+                theme.isDark ? styles.settingsPanelDark : styles.settingsPanelLight,
+                { top: insets.top + tokens.spacing.md + tokens.spacing.xs, right: SCREEN_PADDING },
+              ]}
+            >
+              <View style={styles.settingsHeader}>
+                <Text style={[styles.settingsTitle, { color: theme.text }]}>Listing info</Text>
+                <Pressable onPress={() => setIsMarketSettingsOpen(false)} hitSlop={10}>
+                  <X color={theme.subtext} size={18} />
+                </Pressable>
+              </View>
+
+              <View style={styles.settingsRow}>
+                <Text style={[styles.settingsLabel, { color: theme.subtext }]}>Model ID</Text>
+                <Text style={[styles.settingsValue, { color: theme.text }]}>{MOCK_MODEL_ID}</Text>
+              </View>
+
+              <Pressable style={styles.settingsRow}>
+                <Text style={[styles.settingsLabel, { color: theme.subtext }]}>Wallet</Text>
+                <Text style={[styles.settingsValue, { color: theme.text }]}>{MOCK_WALLET}</Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Joker Spotlight</Text>
@@ -99,18 +152,28 @@ export default function MarketplaceScreen() {
                 style={[
                   styles.jokerCard,
                   theme.isDark ? styles.jokerCardDark : styles.jokerCardLight,
-                  { borderColor: theme.border },
+                  { borderColor: withAlpha(theme.border, 0.9) },
                 ]}
               >
                 <LinearGradient colors={getToneGradient(joker.tone, theme)} style={styles.jokerArt}>
-                  <View style={[styles.jokerBadge, { backgroundColor: withAlpha(theme.accent, 0.22) }]}>
-                    <Text style={[styles.badgeText, { color: theme.text }]}>{joker.rarity}</Text>
+                  <View
+                    style={[
+                      styles.jokerBadge,
+                      {
+                        backgroundColor: theme.isDark
+                          ? withAlpha(theme.accentBlue, 0.38)
+                          : withAlpha(theme.accentSoft, 0.6),
+                        borderColor: withAlpha(theme.border, 0.8),
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.badgeText, { color: theme.textOnAccent }]}>{joker.rarity}</Text>
                   </View>
                 </LinearGradient>
                 <View style={styles.jokerMeta}>
                   <Text style={[styles.jokerName, { color: theme.text }]}>{joker.name}</Text>
-                  <View style={[styles.pricePill, { backgroundColor: withAlpha(theme.accent, theme.isDark ? 0.2 : 0.12) }]}>
-                    <Text style={[styles.priceText, { color: theme.accent }]}>{joker.price}c</Text>
+                  <View style={[styles.pricePill, { backgroundColor: withAlpha(theme.accent, 0.9) }]}>
+                    <Text style={[styles.priceText, { color: theme.textOnAccent }]}>{joker.price}c</Text>
                   </View>
                 </View>
               </View>
@@ -118,7 +181,7 @@ export default function MarketplaceScreen() {
           </ScrollView>
         </View>
 
-        <View style={[styles.filterRow, { borderColor: theme.border }]}>
+        <View style={[styles.filterRow, { borderColor: withAlpha(theme.border, 0.9) }]}>
           <View style={styles.filterPills}>
             {FILTERS.map((filter) => {
               const isActive = selectedFilter === filter.key;
@@ -129,17 +192,19 @@ export default function MarketplaceScreen() {
                   style={[
                     styles.filterPill,
                     {
-                      backgroundColor: isActive
-                        ? withAlpha(theme.accent, theme.isDark ? 0.28 : 0.16)
-                        : withAlpha(theme.border, 0.6),
-                      borderColor: isActive ? theme.accent : withAlpha(theme.border, 0.8),
+                      backgroundColor: isActive ? theme.accent : theme.chipBackground,
+                      borderColor: isActive ? withAlpha(theme.accent, 0.95) : withAlpha(theme.border, 0.8),
+                      shadowColor: isActive ? withAlpha(theme.accent, 0.6) : undefined,
+                      shadowOpacity: isActive ? 0.15 : undefined,
+                      shadowRadius: isActive ? 6 : undefined,
+                      shadowOffset: isActive ? { width: 0, height: 4 } : undefined,
                     },
                   ]}
                 >
                   <Text
                     style={[
                       styles.filterLabel,
-                      { color: isActive ? theme.text : theme.subtext },
+                      { color: isActive ? theme.textOnAccent : theme.subtext },
                     ]}
                   >
                     {filter.label}
@@ -182,6 +247,14 @@ function DeckCard({ deck, onPress }: { deck: DeckForSale; onPress: () => void })
     [deck.accentKey, theme.accent, theme.accentBlue, theme.accentNeon, theme.accentSoft]
   );
 
+  const previewGradient = useMemo(
+    () =>
+      theme.isDark
+        ? [withAlpha(accentColor, 0.35), withAlpha(theme.accentBlue, 0.22)]
+        : [withAlpha(accentColor, 0.2), withAlpha(theme.surfaceElevated, 0.95)],
+    [accentColor, theme.accentBlue, theme.isDark, theme.surfaceElevated]
+  );
+
   return (
     <Pressable
       onPress={onPress}
@@ -192,13 +265,21 @@ function DeckCard({ deck, onPress }: { deck: DeckForSale; onPress: () => void })
       ]}
     >
       <LinearGradient
-        colors={[withAlpha(accentColor, 0.24), withAlpha(theme.accent, theme.isDark ? 0.18 : 0.12)]}
+        colors={previewGradient}
         style={styles.deckPreview}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <View style={[styles.deckBadge, { backgroundColor: withAlpha(theme.bg, 0.25), borderColor: withAlpha(theme.border, 0.7) }]}> 
+        <View
+          style={[
+            styles.deckBadge,
+            { backgroundColor: theme.chipBackground, borderColor: withAlpha(theme.border, 0.8) },
+          ]}
+        >
           <Text style={[styles.deckBadgeText, { color: theme.text }]}>{deck.cardsCount} cards</Text>
+        </View>
+        <View style={[styles.progressTrack, { backgroundColor: theme.progressTrack }]}>
+          <View style={[styles.progressFill, { width: '72%', backgroundColor: theme.accent }]} />
         </View>
         <View style={[styles.deckStripe, { backgroundColor: withAlpha(accentColor, 0.75) }]} />
       </LinearGradient>
@@ -210,8 +291,8 @@ function DeckCard({ deck, onPress }: { deck: DeckForSale; onPress: () => void })
         <Text style={[styles.deckCreator, { color: theme.subtext }]}>{deck.creator}</Text>
       </View>
 
-      <View style={[styles.priceTag, { backgroundColor: withAlpha(accentColor, theme.isDark ? 0.24 : 0.16) }]}>
-        <Text style={[styles.priceTagText, { color: theme.text }]}>{deck.price}c</Text>
+      <View style={[styles.priceTag, { backgroundColor: withAlpha(theme.accent, 0.9) }]}>
+        <Text style={[styles.priceTagText, { color: theme.textOnAccent }]}>{deck.price}c</Text>
       </View>
     </Pressable>
   );
@@ -224,6 +305,7 @@ function createStyles(theme: ReturnType<typeof useTokens>) {
     container: {
       flex: 1,
       backgroundColor: theme.bg,
+      position: 'relative',
       paddingHorizontal: SCREEN_PADDING,
     },
     scrollView: {
@@ -239,16 +321,16 @@ function createStyles(theme: ReturnType<typeof useTokens>) {
       marginBottom: tokens.spacing.lg,
     },
     headerGlass: {
-      backgroundColor: 'rgba(255,255,255,0.04)',
-      borderColor: 'rgba(255,255,255,0.08)',
-      shadowColor: '#3CF2FF',
-      shadowOpacity: 0.15,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 },
+      backgroundColor: theme.surfaceGlass,
+      borderColor: withAlpha(theme.border, 0.9),
+      shadowColor: withAlpha(theme.accent, 0.35),
+      shadowOpacity: 0.25,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 12 },
     },
     headerSolid: {
-      backgroundColor: theme.surfaceElevated,
-      borderColor: theme.borderSubtle,
+      backgroundColor: withAlpha(theme.surfaceElevated, 0.98),
+      borderColor: withAlpha(theme.borderSubtle, 0.9),
       shadowColor: theme.cardShadow.shadowColor,
       shadowOpacity: theme.cardShadow.shadowOpacity,
       shadowRadius: theme.cardShadow.shadowRadius,
@@ -275,12 +357,12 @@ function createStyles(theme: ReturnType<typeof useTokens>) {
       borderWidth: 1,
     },
     iconButtonDark: {
-      backgroundColor: 'rgba(255,255,255,0.06)',
-      borderColor: 'rgba(255,255,255,0.14)',
+      backgroundColor: withAlpha(theme.surfaceGlass, 0.95),
+      borderColor: withAlpha(theme.border, 0.9),
     },
     iconButtonLight: {
-      backgroundColor: theme.accentSoft,
-      borderColor: theme.borderSubtle,
+      backgroundColor: withAlpha(theme.accentSoft, 0.9),
+      borderColor: withAlpha(theme.borderSubtle, 0.9),
     },
     section: {
       marginBottom: tokens.spacing.xl,
@@ -305,14 +387,15 @@ function createStyles(theme: ReturnType<typeof useTokens>) {
       borderWidth: 1,
     },
     jokerCardDark: {
-      backgroundColor: 'rgba(255,255,255,0.04)',
+      backgroundColor: withAlpha(theme.surfaceGlass, 0.96),
+      borderColor: withAlpha(theme.border, 0.9),
       shadowColor: '#000',
       shadowOpacity: 0.28,
       shadowRadius: 14,
       shadowOffset: { width: 0, height: 8 },
     },
     jokerCardLight: {
-      backgroundColor: theme.cardBg,
+      backgroundColor: withAlpha(theme.cardBg, 0.98),
       shadowColor: theme.cardShadow.shadowColor,
       shadowOpacity: theme.cardShadow.shadowOpacity,
       shadowRadius: theme.cardShadow.shadowRadius,
@@ -332,7 +415,6 @@ function createStyles(theme: ReturnType<typeof useTokens>) {
       borderBottomRightRadius: 12,
       borderTopLeftRadius: 18,
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.18)',
       margin: tokens.spacing.sm,
     },
     badgeText: {
@@ -401,7 +483,8 @@ function createStyles(theme: ReturnType<typeof useTokens>) {
       position: 'relative',
     },
     deckCardDark: {
-      backgroundColor: 'rgba(255,255,255,0.04)',
+      backgroundColor: withAlpha(theme.surfaceGlass, 0.96),
+      borderColor: withAlpha(theme.border, 0.9),
       shadowColor: '#000',
       shadowOpacity: 0.3,
       shadowRadius: 14,
@@ -420,7 +503,7 @@ function createStyles(theme: ReturnType<typeof useTokens>) {
       borderRadius: 16,
       overflow: 'hidden',
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.12)',
+      borderColor: withAlpha(theme.border, 0.9),
       marginBottom: tokens.spacing.xs,
       justifyContent: 'flex-end',
       padding: tokens.spacing.sm,
@@ -435,6 +518,16 @@ function createStyles(theme: ReturnType<typeof useTokens>) {
     deckBadgeText: {
       fontSize: 12,
       fontWeight: '700',
+    },
+    progressTrack: {
+      height: 6,
+      borderRadius: 3,
+      width: '100%',
+      marginTop: tokens.spacing.sm,
+    },
+    progressFill: {
+      height: 6,
+      borderRadius: 3,
     },
     deckStripe: {
       position: 'absolute',
@@ -466,6 +559,56 @@ function createStyles(theme: ReturnType<typeof useTokens>) {
     },
     priceTagText: {
       fontSize: 13,
+      fontWeight: '800',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    settingsPanel: {
+      position: 'absolute',
+      width: 240,
+      padding: tokens.spacing.md,
+      borderRadius: 16,
+      borderWidth: 1,
+      gap: tokens.spacing.sm,
+    },
+    settingsPanelDark: {
+      backgroundColor: withAlpha(theme.surfaceGlass, 0.98),
+      borderColor: withAlpha(theme.border, 0.9),
+      shadowColor: '#000',
+      shadowOpacity: 0.25,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+    },
+    settingsPanelLight: {
+      backgroundColor: theme.surfaceGlass,
+      borderColor: withAlpha(theme.borderSubtle, 0.9),
+      shadowColor: theme.cardShadow.shadowColor,
+      shadowOpacity: theme.cardShadow.shadowOpacity,
+      shadowRadius: theme.cardShadow.shadowRadius,
+      shadowOffset: theme.cardShadow.shadowOffset,
+      elevation: theme.cardShadow.elevation,
+    },
+    settingsHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    settingsTitle: {
+      fontSize: 16,
+      fontWeight: '800',
+    },
+    settingsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    settingsLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    settingsValue: {
+      fontSize: 14,
       fontWeight: '800',
     },
   });
