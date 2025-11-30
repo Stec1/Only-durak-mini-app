@@ -31,6 +31,10 @@ export default function DeckConstructorScreen() {
   const actions = useDraftDeckActions();
 
   useEffect(() => {
+    // DEBUG NOTE:
+    // Storage hydration previously chained into store subscriptions and produced the "Maximum update
+    // depth exceeded" crash on startup. Persistence hooks are temporarily no-ops in the store to
+    // keep the constructor screen stable while we keep the in-memory draft experience alive.
     ensureDraftDeckPersistence();
     loadDraftDeckFromStorage();
   }, []);

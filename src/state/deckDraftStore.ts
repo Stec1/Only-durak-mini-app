@@ -1,6 +1,4 @@
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { shallow } from 'zustand/shallow';
 import { DECK_KEYS, type CardKey, type DeckMap, type Rank, type Suit } from '@/utils/deck';
 
 export type DraftDeckCard = {
@@ -29,7 +27,6 @@ type DraftDeckState = {
 
 const blankDeckMap = (): DeckMap => Object.fromEntries(DECK_KEYS.map((k) => [k, null])) as DeckMap;
 const DEFAULT_DECK_NAME = 'My Custom Deck';
-const STORAGE_KEY = 'DECK_CONSTRUCTOR_DRAFT';
 
 const buildCardsFromDeck = (deck: DeckMap): DraftDeckCard[] =>
   DECK_KEYS.reduce<DraftDeckCard[]>((acc, key) => {
@@ -86,46 +83,16 @@ export const useDraftDeckActions = () =>
     setDraftFromStorage: state.setDraftFromStorage,
   }));
 
-type PersistedDraftState = {
-  deck: DeckMap;
-  deckName: string;
-  backUri: string;
-};
-
-const saveDraftToStorage = async (state: PersistedDraftState) => {
-  try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (error) {
-    console.warn('Failed to save draft deck to storage', error);
-  }
-};
-
+// DEBUG NOTE:
+// The previous AsyncStorage persistence layer was still surfacing "Maximum update depth exceeded"
+// warnings in dev after the recent merges, likely because the store subscription immediately
+// re-triggered React updates while hydration was running in multiple screens. To stop the critical
+// errors and allow the UI to boot, persistence is temporarily disabled and kept behind no-op
+// helpers until it can be reintroduced safely.
 export const loadDraftDeckFromStorage = async () => {
-  try {
-    const stored = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!stored) return;
-
-    const parsed = JSON.parse(stored) as PersistedDraftState;
-    useDraftDeckStore.getState().setDraftFromStorage(parsed);
-  } catch (error) {
-    console.warn('Failed to load draft deck from storage', error);
-  }
+  return;
 };
 
-let persistenceUnsubscribe: (() => void) | null = null;
-
-export const ensureDraftDeckPersistence = () => {
-  if (persistenceUnsubscribe) return persistenceUnsubscribe;
-
-  persistenceUnsubscribe = useDraftDeckStore.subscribe(
-    (state) => ({ deck: state.deck, deckName: state.deckName, backUri: state.backUri }),
-    (state) => {
-      saveDraftToStorage(state);
-    },
-    { equalityFn: shallow }
-  );
-
-  return persistenceUnsubscribe;
-};
+export const ensureDraftDeckPersistence = () => () => {};
 
 export const createEmptyDeck = blankDeckMap;

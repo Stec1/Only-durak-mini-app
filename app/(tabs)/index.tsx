@@ -54,6 +54,10 @@ export default function ProfileScreen() {
   const draftActions = useDraftDeckActions();
 
   useEffect(() => {
+    // DEBUG NOTE:
+    // Persistence hydration was triggering cascading updates from multiple screens; deckDraftStore
+    // now keeps storage disabled. This hook remains as the single entry point to re-enable storage
+    // later without reintroducing the Maximum update depth error seen in Replit.
     ensureDraftDeckPersistence();
     loadDraftDeckFromStorage();
   }, []);
