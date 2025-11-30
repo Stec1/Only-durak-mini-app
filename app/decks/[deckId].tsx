@@ -1,19 +1,20 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, Dimensions, Animated, TouchableOpacity, Platform } from 'react-native';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDeck } from '@/storage/decks';
-import { Deck, Suit, Rank } from '@/types/deck';
+import { Deck, Suit, Rank, CardKey } from '@/types/deck';
 import { getUser, isModel } from '@/store/user';
 import { order } from '@/utils/cardsOrder';
 import ODCard from '@/components/ODCard';
 import PlayingCardPremium from '@/src/components/cards/PlayingCardPremium';
+import { useAuth } from '@/contexts/auth';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-function CardItem({ cardKey, uri }: { cardKey: string; uri?: string }) {
+function CardItem({ cardKey, uri, width }: { cardKey: string; uri?: string; width: number }) {
   const scale = useRef(new Animated.Value(1)).current;
   const [rank, suit] = cardKey.split('_') as [Rank, Suit];
 
@@ -39,10 +40,10 @@ function CardItem({ cardKey, uri }: { cardKey: string; uri?: string }) {
             imageUri={uri}
             rank={rank}
             suit={suit as 'spade' | 'heart' | 'club' | 'diamond'}
-            width={280}
+            width={width}
           />
         ) : (
-          <ODCard rank={rank} suit={suit} photoUri={null} width={280} />
+          <ODCard rank={rank} suit={suit} photoUri={null} width={width} />
         )}
       </Animated.View>
     </Pressable>
@@ -51,22 +52,24 @@ function CardItem({ cardKey, uri }: { cardKey: string; uri?: string }) {
 
 export default function DeckDetailScreen() {
   const insets = useSafeAreaInsets();
+  const { user, role } = useAuth();
   const { deckId } = useLocalSearchParams<{ deckId: string }>();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isModel()) {
+    const isModelRole = role === 'model' || isModel();
+    if (!isModelRole) {
       router.back();
       return;
     }
-
-    const user = getUser();
-    getDeck(user.username, deckId || '').then((d) => {
+    const modelId = user?.id || getUser().username;
+    // FIX: deck preview now correctly loads the saved deck by id instead of always showing "Deck not found".
+    getDeck(modelId, Array.isArray(deckId) ? deckId[0] : deckId || '').then((d) => {
       setDeck(d);
       setLoading(false);
     });
-  }, [deckId]);
+  }, [deckId, role, user?.id]);
 
   if (loading) {
     return (
@@ -102,10 +105,23 @@ export default function DeckDetailScreen() {
     );
   }
 
-  const cardData = order.map((key) => ({
-    key,
-    uri: deck.cards[key],
-  }));
+  const deckMap = useMemo(() => {
+    const blank = Object.fromEntries(order.map((k) => [k, null])) as Record<CardKey, string | null>;
+    return { ...blank, ...deck.cards };
+  }, [deck.cards]);
+
+  const cardData = useMemo(
+    () =>
+      order.map((key) => ({
+        key,
+        uri: deckMap[key],
+      })),
+    [deckMap]
+  );
+
+  const filledCount = useMemo(() => cardData.filter((c) => !!c.uri).length, [cardData]);
+
+  const cardWidth = useMemo(() => Math.min((SCREEN_WIDTH - 64) / 4, 86), []);
 
   return (
     <>
@@ -138,24 +154,18 @@ export default function DeckDetailScreen() {
         <FlatList
           data={cardData}
           keyExtractor={(item) => item.key}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          pagingEnabled
-          snapToInterval={SCREEN_WIDTH}
-          snapToAlignment="center"
-          decelerationRate="fast"
-          getItemLayout={(_, index) => ({
-            length: SCREEN_WIDTH,
-            offset: SCREEN_WIDTH * index,
-            index,
-          })}
-          renderItem={({ item }) => <CardItem cardKey={item.key} uri={item.uri} />}
+          numColumns={4}
+          columnWrapperStyle={{ gap: 10 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 20 }}
+          renderItem={({ item }) => (
+            <View style={{ flex: 1, marginBottom: 10 }}>
+              <CardItem cardKey={item.key} uri={item.uri ?? undefined} width={cardWidth} />
+            </View>
+          )}
         />
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            {Object.keys(deck.cards).length} / 36 cards
-          </Text>
+          <Text style={styles.footerText}>{filledCount} / 36 cards</Text>
         </View>
       </View>
     </>
@@ -168,10 +178,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A0A0F',
   },
   cardContainer: {
-    width: SCREEN_WIDTH,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 16,
   },
   emptyContainer: {
     flex: 1,
