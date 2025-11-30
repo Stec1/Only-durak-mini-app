@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { shallow } from 'zustand/shallow';
 import { DECK_KEYS, type CardKey, type DeckMap, type Rank, type Suit } from '@/utils/deck';
 
 export type DraftDeckCard = {
@@ -20,17 +21,18 @@ type DraftDeckState = {
   deck: DeckMap;
   deckName: string;
   backUri: string;
-  hydrated: boolean;
   actions: {
     setCardImage: (key: CardKey, uri: string | null) => void;
     setDeckName: (name: string) => void;
     setBackUri: (uri: string) => void;
     resetDraft: () => void;
-    setHydrated: (value: boolean) => void;
+    setDraftFromStorage: (draft: Partial<DraftDeck> & { deck?: DeckMap; deckName?: string }) => void;
   };
 };
 
 const blankDeckMap = (): DeckMap => Object.fromEntries(DECK_KEYS.map((k) => [k, null])) as DeckMap;
+const DEFAULT_DECK_NAME = 'My Custom Deck';
+const STORAGE_KEY = 'DECK_CONSTRUCTOR_DRAFT';
 
 const buildCardsFromDeck = (deck: DeckMap): DraftDeckCard[] =>
   DECK_KEYS.reduce<DraftDeckCard[]>((acc, key) => {
@@ -41,37 +43,29 @@ const buildCardsFromDeck = (deck: DeckMap): DraftDeckCard[] =>
     return acc.concat({ id: key, rank, suit, imageUrl: uri });
   }, []);
 
-export const useDraftDeckStore = create<DraftDeckState>()(
-  persist(
-    (set) => ({
-      deck: blankDeckMap(),
-      deckName: 'My Custom Deck',
-      backUri: '',
-      hydrated: false,
-      actions: {
-        setCardImage: (key, uri) =>
-          set((state) => ({
-            deck: {
-              ...state.deck,
-              [key]: uri,
-            },
-          })),
-        setDeckName: (name) => set({ deckName: name }),
-        setBackUri: (uri) => set({ backUri: uri }),
-        resetDraft: () => set({ deck: blankDeckMap(), deckName: 'My Custom Deck', backUri: '' }),
-        setHydrated: (value) => set({ hydrated: value }),
-      },
-    }),
-    {
-      name: 'DECK_CONSTRUCTOR_DRAFT',
-      storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ deck: state.deck, deckName: state.deckName, backUri: state.backUri }),
-      onRehydrateStorage: () => (state) => {
-        state?.actions.setHydrated(true);
-      },
-    }
-  )
-);
+export const useDraftDeckStore = create<DraftDeckState>()((set) => ({
+  deck: blankDeckMap(),
+  deckName: DEFAULT_DECK_NAME,
+  backUri: '',
+  actions: {
+    setCardImage: (key, uri) =>
+      set((state) => ({
+        deck: {
+          ...state.deck,
+          [key]: uri,
+        },
+      })),
+    setDeckName: (name) => set({ deckName: name }),
+    setBackUri: (uri) => set({ backUri: uri }),
+    resetDraft: () => set({ deck: blankDeckMap(), deckName: DEFAULT_DECK_NAME, backUri: '' }),
+    setDraftFromStorage: (draft) =>
+      set({
+        deck: draft.deck ?? blankDeckMap(),
+        deckName: draft.name ?? draft.deckName ?? DEFAULT_DECK_NAME,
+        backUri: draft.backUri ?? '',
+      }),
+  },
+}));
 
 export const useDraftDeck = () =>
   useDraftDeckStore((state) => {
@@ -89,5 +83,66 @@ export const useDraftDeck = () =>
   });
 
 export const useDraftDeckActions = () => useDraftDeckStore((state) => state.actions);
+
+type PersistedDraftState = {
+  deck: DeckMap;
+  deckName: string;
+  backUri: string;
+};
+
+const loadDraftFromStorage = async (): Promise<PersistedDraftState | null> => {
+  try {
+    const stored = await AsyncStorage.getItem(STORAGE_KEY);
+    return stored ? (JSON.parse(stored) as PersistedDraftState) : null;
+  } catch (error) {
+    console.warn('Failed to load draft deck from storage', error);
+    return null;
+  }
+};
+
+const saveDraftToStorage = async (state: PersistedDraftState) => {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.warn('Failed to save draft deck to storage', error);
+  }
+};
+
+export const useDraftDeckPersistence = () => {
+  const actions = useDraftDeckActions();
+  const draftState = useDraftDeckStore(
+    (state) => ({ deck: state.deck, deckName: state.deckName, backUri: state.backUri }),
+    shallow
+  );
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      const stored = await loadDraftFromStorage();
+      if (stored && isMounted) {
+        actions.setDraftFromStorage(stored);
+      }
+      if (isMounted) {
+        setHydrated(true);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [actions]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    saveDraftToStorage({
+      deck: draftState.deck,
+      deckName: draftState.deckName,
+      backUri: draftState.backUri,
+    });
+  }, [hydrated, draftState.deck, draftState.deckName, draftState.backUri]);
+};
 
 export const createEmptyDeck = blankDeckMap;
