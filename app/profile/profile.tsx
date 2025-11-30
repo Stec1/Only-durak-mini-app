@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useTokens } from '@/src/contexts/theme';
+import { useTheme, useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
 import { useAuth } from '@/contexts/auth';
 import { loadDeck, saveDeck, DECK_KEYS, type DeckMap } from '@/utils/deck';
 import { getDecks } from '@/storage/decks';
 import type { Deck } from '@/types/deck';
-import { mockEarnings, mockRecent } from '@/src/data/profileMocks';
+import { mockRecent } from '@/src/data/profileMocks';
 
 import HeaderSection from './components/HeaderSection';
 import FeatureHub from './components/FeatureHub';
@@ -19,7 +19,6 @@ import MyDeckPreview from './components/MyDeckPreview';
 import DeckConstructorBlock from './components/DeckConstructorBlock';
 import JokerSlots from './components/JokerSlots';
 import RecentMatches from './components/RecentMatches';
-import EarningsGraph from './components/EarningsGraph';
 
 const DRAFT_DECK_KEY = 'DECK_CONSTRUCTOR_DRAFT_V1';
 
@@ -35,6 +34,7 @@ async function loadDraftDeck(): Promise<DeckMap | null> {
 
 export default function ProfileScreen() {
   const { user, role, logout } = useAuth();
+  const { themeName, setTheme } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const themeTokens = useTokens();
@@ -50,15 +50,10 @@ export default function ProfileScreen() {
   const [deckProgress, setDeckProgress] = useState({ filled: 0, total: DECK_KEYS.length });
   const [decks, setDecks] = useState<Deck[]>([]);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+
   const handleSettingsPress = () => {
-    Alert.alert('Profile', 'Manage your session.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: logout,
-      },
-    ]);
+    setSettingsVisible(true);
   };
 
   useEffect(() => {
@@ -122,9 +117,20 @@ export default function ProfileScreen() {
     [insets.bottom, insets.top]
   );
 
-  const handleOpenEarnings = () => {
-    scrollRef.current?.scrollToEnd({ animated: true });
-  };
+  const handleToggleTheme = useCallback(() => {
+    const nextTheme = themeName === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    setSettingsVisible(false);
+  }, [setTheme, themeName]);
+
+  const handleLogout = useCallback(() => {
+    setSettingsVisible(false);
+    logout();
+  }, [logout]);
+
+  const closeSettings = () => setSettingsVisible(false);
+
+  const themeToggleLabel = themeName === 'dark' ? 'Switch to Light theme' : 'Switch to Dark theme';
 
   return (
     <View style={[styles.container, { backgroundColor: themeTokens.bg }]}>
@@ -145,8 +151,6 @@ export default function ProfileScreen() {
         <FeatureHub
           onOpenMarketplace={() => router.push('/marketplace/marketplace')}
           onOpenGames={() => router.push('/(tabs)/game')}
-          onOpenEarnings={handleOpenEarnings}
-          onOpenJokers={() => scrollRef.current?.scrollTo({ y: 620, animated: true })}
         />
 
         {isModel && (
@@ -169,14 +173,24 @@ export default function ProfileScreen() {
         <JokerSlots />
 
         <RecentMatches matches={mockRecent} />
-
-        <EarningsGraph
-          total={mockEarnings.total}
-          week={mockEarnings.week}
-          month={mockEarnings.month}
-          data={mockEarnings.series}
-        />
       </ScrollView>
+
+      <Modal transparent visible={settingsVisible} animationType="slide" onRequestClose={closeSettings}>
+        <View style={styles.sheetOverlay}>
+          <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={closeSettings} />
+          <View style={[styles.sheet, { backgroundColor: themeTokens.cardBg, borderColor: themeTokens.border }]}>
+            <TouchableOpacity style={styles.sheetItem} activeOpacity={0.75} onPress={handleToggleTheme}>
+              <Text style={[styles.sheetText, { color: themeTokens.text }]}>{themeToggleLabel}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.sheetItem} activeOpacity={0.75} onPress={handleLogout}>
+              <Text style={[styles.sheetText, styles.destructive, { color: themeTokens.text }]}>Log out</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.sheetItem} activeOpacity={0.75} onPress={closeSettings}>
+              <Text style={[styles.sheetText, { color: themeTokens.subtext }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -191,5 +205,31 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: tokens.spacing.lg,
     gap: tokens.spacing.lg,
+  },
+  sheetOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  backdrop: {
+    flex: 1,
+  },
+  sheet: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.md,
+    borderWidth: 1,
+    gap: tokens.spacing.xs,
+  },
+  sheetItem: {
+    paddingVertical: tokens.spacing.md,
+  },
+  sheetText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  destructive: {
+    color: '#FF7B7B',
   },
 });
