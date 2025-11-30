@@ -186,7 +186,7 @@ export default function ProfileScreen() {
         />
 
         <FeatureHub
-          onOpenMarketplace={() => router.push('/marketplace/marketplace')}
+          onOpenMarketplace={() => router.push('/marketplace')}
           onOpenGames={() => router.push('/(tabs)/game')}
         />
 
