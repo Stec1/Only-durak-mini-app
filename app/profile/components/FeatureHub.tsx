@@ -1,6 +1,6 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Gamepad2, ShoppingBag, Sparkles, TrendingUp } from 'lucide-react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Gamepad2, ShoppingBag } from 'lucide-react-native';
 
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
@@ -8,11 +8,9 @@ import { tokens } from '@/src/theme/tokens';
 interface FeatureHubProps {
   onOpenMarketplace: () => void;
   onOpenGames: () => void;
-  onOpenEarnings: () => void;
-  onOpenJokers: () => void;
 }
 
-export default function FeatureHub({ onOpenMarketplace, onOpenGames, onOpenEarnings, onOpenJokers }: FeatureHubProps) {
+export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHubProps) {
   const theme = useTokens();
   const cards = [
     {
@@ -29,32 +27,12 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames, onOpenEarni
       icon: <Gamepad2 color={theme.accent} size={24} strokeWidth={2.5} />,
       onPress: onOpenGames,
     },
-    {
-      key: 'earnings',
-      title: 'Earnings',
-      subtitle: 'Track performance',
-      icon: <TrendingUp color={theme.accent} size={24} strokeWidth={2.5} />,
-      onPress: onOpenEarnings,
-    },
-    {
-      key: 'jokers',
-      title: 'Joker NFTs',
-      subtitle: 'Collect rare cards',
-      icon: <Sparkles color={theme.accent} size={24} strokeWidth={2.5} />,
-      onPress: onOpenJokers,
-    },
   ];
 
   return (
     <View>
       <Text style={[styles.title, { color: theme.text }]}>Feature Hub</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={240}
-        decelerationRate="fast"
-        contentContainerStyle={styles.carouselContent}
-      >
+      <View style={styles.grid}>
         {cards.map((card) => (
           <TouchableOpacity
             key={card.key}
@@ -67,7 +45,7 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames, onOpenEarni
             <Text style={[styles.cardSubtitle, { color: theme.subtext }]}>{card.subtitle}</Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -78,12 +56,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginBottom: tokens.spacing.sm,
   },
-  carouselContent: {
+  grid: {
+    flexDirection: 'row',
     gap: tokens.spacing.md,
-    paddingVertical: tokens.spacing.xs,
   },
   card: {
-    width: 220,
+    flex: 1,
+    minHeight: 152,
     padding: tokens.spacing.lg,
     borderRadius: 24,
     backgroundColor: 'rgba(255,255,255,0.06)',

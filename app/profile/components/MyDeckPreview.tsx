@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
   previewImage: {
-    height: 180,
+    height: 240,
     borderRadius: 18,
     overflow: 'hidden',
     justifyContent: 'flex-end',
