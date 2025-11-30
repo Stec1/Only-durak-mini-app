@@ -13,7 +13,7 @@ type ProfileAvatarProps = {
   size?: number;
 };
 
-export default function ProfileAvatar({ uri, onImagePicked, size = 144 }: ProfileAvatarProps) {
+export default function ProfileAvatar({ uri, onImagePicked, size = 148 }: ProfileAvatarProps) {
   const [loading, setLoading] = useState(false);
   const { setModelAvatar } = useAuth();
   const avatarUri = useUserStore((state) => state.avatarUri);
@@ -68,31 +68,23 @@ export default function ProfileAvatar({ uri, onImagePicked, size = 144 }: Profil
       disabled={loading}
       style={styles.touchable}
     >
-      <View style={[styles.container, { width: size, height: size, borderRadius: size / 2 }]}>
-        <View style={[styles.innerBorder, { borderRadius: (size - 4) / 2 }]}>
-          <View style={[styles.circle, { width: size - 8, height: size - 8, borderRadius: (size - 8) / 2 }]}>
-            {loading ? (
-              <ActivityIndicator size="large" color={tokens.accent} />
-            ) : (localUri && localUri.trim()) ? (
-              <Image
-                source={{ uri: localUri }}
-                style={styles.image}
-                resizeMode="cover"
-                onError={(error) => {
-                  console.error('❌ Image load error:', error.nativeEvent.error);
-                  setLocalUri(null);
-                }}
-              />
-            ) : (
-              <Plus color={tokens.text.secondary} size={size * 0.25} strokeWidth={2.5} />
-            )}
-          </View>
-        </View>
-        {!localUri && !loading && (
-          <View style={styles.overlay}>
-            <View style={[styles.overlayInner, { borderRadius: size / 2 }]} />
-          </View>
+      <View style={[styles.circle, { width: size, height: size, borderRadius: size / 2 }]}>
+        {loading ? (
+          <ActivityIndicator size="large" color={tokens.accent} />
+        ) : (localUri && localUri.trim()) ? (
+          <Image
+            source={{ uri: localUri }}
+            style={[styles.image, { borderRadius: size / 2 }]}
+            resizeMode="cover"
+            onError={(error) => {
+              console.error('❌ Image load error:', error.nativeEvent.error);
+              setLocalUri(null);
+            }}
+          />
+        ) : (
+          <Plus color={tokens.text.secondary} size={size * 0.25} strokeWidth={2.5} />
         )}
+        {!localUri && !loading && <View style={[styles.overlay, { borderRadius: size / 2 }]} />}
       </View>
     </TouchableOpacity>
   );
@@ -102,16 +94,8 @@ const styles = StyleSheet.create({
   touchable: {
     alignSelf: 'center',
   },
-  container: {
-    padding: 0,
-  },
-  innerBorder: {
-    padding: 0,
-  },
   circle: {
     backgroundColor: tokens.card.bg,
-    borderWidth: 1,
-    borderColor: tokens.card.border,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
@@ -121,13 +105,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    pointerEvents: 'none',
-  },
-  overlayInner: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'rgba(0,0,0,0.08)',
   },
 });

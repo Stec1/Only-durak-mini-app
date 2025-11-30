@@ -76,7 +76,7 @@ export default function ProfileScreen() {
   const themeTokens = useTokens();
   const scrollRef = useRef<ScrollView>(null);
   const settingsAnim = useRef(new Animated.Value(0)).current;
-  const panelWidth = useMemo(() => Math.min(Dimensions.get('window').width * 0.82, 360), []);
+  const panelWidth = useMemo(() => Math.min(Dimensions.get('window').width * 0.68, 280), []);
 
   const isModel = role === 'model';
   const displayName = user?.name || 'Player';
@@ -226,7 +226,7 @@ export default function ProfileScreen() {
             decks={decks}
             deckProgress={deckProgress}
             onOpenDeck={(deckId) => router.push(`/decks/${deckId}` as const)}
-            onOpenDeckSettings={() => router.push('/deck-constructor')}
+            onDecksChanged={loadDecks}
             onResetDeck={handleResetDeck}
           />
         )}
@@ -328,12 +328,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   drawer: {
-    height: '100%',
     borderTopLeftRadius: 20,
     borderBottomLeftRadius: 20,
     borderWidth: 1,
+    alignSelf: 'flex-start',
     paddingHorizontal: tokens.spacing.lg,
     paddingVertical: tokens.spacing.lg,
+    paddingTop: 40,
     gap: tokens.spacing.lg,
   },
   drawerHeader: {
