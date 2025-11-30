@@ -9,7 +9,7 @@ import { saveDeck as saveNewDeck } from '@/storage/decks';
 import { Deck, CardKey } from '@/types/deck';
 import GlassCard from '@/components/GlassCard';
 import { pickImageNoCrop } from '@/src/utils/imagePicker';
-import { useDraftDeckActions, useDraftDeckStore } from '@/src/state/deckDraftStore';
+import { useDraftDeckActions, useDraftDeckStore, useDraftDeckPersistence } from '@/src/state/deckDraftStore';
 
 function DeckSlot({ suit, rank, uri, onPick }: { suit: Suit; rank: Rank; uri?: string | null; onPick: () => void }) {
   const screenWidth = Dimensions.get('window').width;
@@ -29,6 +29,7 @@ export default function DeckConstructorScreen() {
   const deckName = useDraftDeckStore((state) => state.deckName);
   const backUri = useDraftDeckStore((state) => state.backUri);
   const actions = useDraftDeckActions();
+  useDraftDeckPersistence();
 
   useEffect(() => {
     if (!isModel()) {
@@ -43,7 +44,7 @@ export default function DeckConstructorScreen() {
   }, []);
 
   useEffect(() => {
-    setRefresh(prev => !prev);
+    setRefresh((prev) => !prev);
   }, [deck]);
 
   const data = RANKS.flatMap((r) => SUITS.map((s) => ({ rank: r as Rank, suit: s as Suit, key: cardKey(r as Rank, s as Suit) })));
