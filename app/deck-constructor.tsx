@@ -10,13 +10,14 @@ import { saveDeck as saveNewDeck } from '@/storage/decks';
 import { Deck, CardKey } from '@/types/deck';
 import GlassCard from '@/components/GlassCard';
 import { pickImageNoCrop } from '@/src/utils/imagePicker';
+import { useAuth } from '@/contexts/auth';
 
-const DRAFT_DECK_STORAGE_KEY = 'DECK_CONSTRUCTOR_DRAFT_V1';
+const DRAFT_DECK_KEY = 'DECK_CONSTRUCTOR_DRAFT_V1';
 
 const createEmptyDeck = (): DeckMap => Object.fromEntries(DECK_KEYS.map(k => [k, null])) as DeckMap;
 
 async function loadDraftDeck(): Promise<DeckMap | null> {
-  const raw = await AsyncStorage.getItem(DRAFT_DECK_STORAGE_KEY);
+  const raw = await AsyncStorage.getItem(DRAFT_DECK_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as DeckMap;
@@ -26,11 +27,11 @@ async function loadDraftDeck(): Promise<DeckMap | null> {
 }
 
 async function saveDraftDeck(cards: DeckMap): Promise<void> {
-  await AsyncStorage.setItem(DRAFT_DECK_STORAGE_KEY, JSON.stringify(cards));
+  await AsyncStorage.setItem(DRAFT_DECK_KEY, JSON.stringify(cards));
 }
 
 async function clearDraftDeck(): Promise<void> {
-  await AsyncStorage.removeItem(DRAFT_DECK_STORAGE_KEY);
+  await AsyncStorage.removeItem(DRAFT_DECK_KEY);
 }
 
 function DeckSlot({ suit, rank, uri, onPick }: { suit: Suit; rank: Rank; uri?: string | null; onPick: () => void }) {
@@ -43,6 +44,7 @@ function DeckSlot({ suit, rank, uri, onPick }: { suit: Suit; rank: Rank; uri?: s
 }
 
 export default function DeckConstructorScreen() {
+  const { user, role } = useAuth();
   const [deck, setDeck] = useState<DeckMap>(createEmptyDeck());
   const [ready, setReady] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -50,8 +52,11 @@ export default function DeckConstructorScreen() {
   const [backUri, setBackUri] = useState<string>('');
   const [refresh, setRefresh] = useState(false);
 
+  const modelId = user?.id || getUser().username;
+  const isModelRole = role === 'model' || isModel();
+
   useEffect(() => {
-    if (!isModel()) {
+    if (!isModelRole) {
       Alert.alert('Access denied', 'Only models can edit a personal deck.');
       router.back();
       return;
@@ -71,7 +76,7 @@ export default function DeckConstructorScreen() {
 
   useEffect(() => {
     setRefresh(prev => !prev);
-  }, [deck]);
+  }, [deck, isModelRole]);
 
   useEffect(() => {
     if (!ready) return;
@@ -88,7 +93,7 @@ export default function DeckConstructorScreen() {
   const data = RANKS.flatMap((r) => SUITS.map((s) => ({ rank: r as Rank, suit: s as Suit, key: cardKey(r as Rank, s as Suit) })));
 
   const onPick = useCallback(async (rank: Rank, suit: Suit) => {
-    if (!isModel()) return;
+    if (!isModelRole) return;
     try {
       const uri = await pickImageNoCrop();
       if (uri) {
@@ -98,10 +103,10 @@ export default function DeckConstructorScreen() {
     } catch (e) {
       console.warn('Image pick cancelled:', e);
     }
-  }, []);
+  }, [isModelRole]);
 
   const onSave = useCallback(() => {
-    if (!isModel()) return;
+    if (!isModelRole) return;
     const filledCards = Object.entries(deck).filter(([_, uri]) => uri !== null);
     if (filledCards.length === 0) {
       Alert.alert('Empty Deck', 'Please add at least one card before saving.');
@@ -122,7 +127,7 @@ export default function DeckConstructorScreen() {
   }, []);
 
   const confirmSave = useCallback(async () => {
-    if (!isModel()) return;
+    if (!isModelRole) return;
     if (!deckName.trim()) {
       Alert.alert('Name Required', 'Please enter a deck name.');
       return;
@@ -132,7 +137,6 @@ export default function DeckConstructorScreen() {
       return;
     }
 
-    const user = getUser();
     const cards: Partial<Record<CardKey, string>> = {};
     Object.entries(deck).forEach(([key, uri]) => {
       if (uri) {
@@ -143,7 +147,7 @@ export default function DeckConstructorScreen() {
     const newDeck: Deck = {
       id: `deck_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: deckName.trim(),
-      ownerModelId: user.username,
+      ownerModelId: modelId,
       backUri,
       cards,
       createdAt: Date.now(),
@@ -151,7 +155,8 @@ export default function DeckConstructorScreen() {
     };
 
     try {
-      await saveNewDeck(user.username, newDeck);
+      // FIX: Align saved deck ownership with profile lookups so My Deck refreshes
+      await saveNewDeck(modelId, newDeck);
       await clearDraftDeck();
       setDeck(createEmptyDeck());
       setBackUri('');
@@ -163,7 +168,7 @@ export default function DeckConstructorScreen() {
       console.error('Save deck error:', err);
       Alert.alert('Error', 'Failed to save deck. Please try again.');
     }
-  }, [deckName, backUri, deck]);
+  }, [deckName, backUri, deck, modelId, isModelRole]);
 
   if (!isModel()) return null;
 
