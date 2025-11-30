@@ -56,6 +56,7 @@ export default function DeckDetailScreen() {
   const { deckId } = useLocalSearchParams<{ deckId: string }>();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const deckMap = useMemo(() => {
     const blank = Object.fromEntries(order.map((k) => [k, null])) as Record<CardKey, string | null>;
@@ -71,10 +72,7 @@ export default function DeckDetailScreen() {
       })),
     [deckMap]
   );
-
-  const filledCount = useMemo(() => cardData.filter((c) => !!c.uri).length, [cardData]);
-
-  const cardWidth = useMemo(() => Math.min((SCREEN_WIDTH - 64) / 4, 86), []);
+  const cardWidth = useMemo(() => Math.min(SCREEN_WIDTH - 48, 360), []);
 
   useEffect(() => {
     const isModelRole = role === 'model' || isModel();
@@ -89,6 +87,10 @@ export default function DeckDetailScreen() {
       setLoading(false);
     });
   }, [deckId, role, user?.id]);
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [deck?.id]);
 
   if (loading) {
     return (
@@ -155,18 +157,26 @@ export default function DeckDetailScreen() {
         <FlatList
           data={cardData}
           keyExtractor={(item) => item.key}
-          numColumns={4}
-          columnWrapperStyle={{ gap: 10 }}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 20 }}
-          renderItem={({ item }) => (
-            <View style={{ flex: 1, marginBottom: 10 }}>
-              <CardItem cardKey={item.key} uri={item.uri ?? undefined} width={cardWidth} />
-            </View>
-          )}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          pagingEnabled
+          snapToInterval={SCREEN_WIDTH}
+          snapToAlignment="center"
+          decelerationRate="fast"
+          getItemLayout={(_, index) => ({
+            length: SCREEN_WIDTH,
+            offset: SCREEN_WIDTH * index,
+            index,
+          })}
+          renderItem={({ item }) => <CardItem cardKey={item.key} uri={item.uri ?? undefined} width={cardWidth} />}
+          onMomentumScrollEnd={(event) => {
+            const index = Math.round(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width);
+            setCurrentIndex(index);
+          }}
         />
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>{filledCount} / 36 cards</Text>
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
+          <Text style={styles.footerText}>{`${Math.min(currentIndex + 1, cardData.length)} / ${cardData.length} cards`}</Text>
         </View>
       </View>
     </>
@@ -179,10 +189,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A0A0F',
   },
   cardContainer: {
-    width: '100%',
+    width: SCREEN_WIDTH,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 40,
   },
   emptyContainer: {
     flex: 1,
