@@ -57,6 +57,25 @@ export default function DeckDetailScreen() {
   const [deck, setDeck] = useState<Deck | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const deckMap = useMemo(() => {
+    const blank = Object.fromEntries(order.map((k) => [k, null])) as Record<CardKey, string | null>;
+    if (!deck) return blank;
+    return { ...blank, ...deck.cards };
+  }, [deck]);
+
+  const cardData = useMemo(
+    () =>
+      order.map((key) => ({
+        key,
+        uri: deckMap[key],
+      })),
+    [deckMap]
+  );
+
+  const filledCount = useMemo(() => cardData.filter((c) => !!c.uri).length, [cardData]);
+
+  const cardWidth = useMemo(() => Math.min((SCREEN_WIDTH - 64) / 4, 86), []);
+
   useEffect(() => {
     const isModelRole = role === 'model' || isModel();
     if (!isModelRole) {
@@ -104,24 +123,6 @@ export default function DeckDetailScreen() {
       </>
     );
   }
-
-  const deckMap = useMemo(() => {
-    const blank = Object.fromEntries(order.map((k) => [k, null])) as Record<CardKey, string | null>;
-    return { ...blank, ...deck.cards };
-  }, [deck.cards]);
-
-  const cardData = useMemo(
-    () =>
-      order.map((key) => ({
-        key,
-        uri: deckMap[key],
-      })),
-    [deckMap]
-  );
-
-  const filledCount = useMemo(() => cardData.filter((c) => !!c.uri).length, [cardData]);
-
-  const cardWidth = useMemo(() => Math.min((SCREEN_WIDTH - 64) / 4, 86), []);
 
   return (
     <>
