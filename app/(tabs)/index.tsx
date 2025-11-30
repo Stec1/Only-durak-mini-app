@@ -332,6 +332,7 @@ export default function ProfileScreen() {
 
         {isModel ? (
           <>
+            <Text style={styles.sectionLabel}>Open Deck Constructor</Text>
             <DeckConstructorPreviewCard />
 
             <GlassCard style={styles.actionCard}>
@@ -594,6 +595,12 @@ const createStyles = (themeTokens: ReturnType<typeof useTokens>) => StyleSheet.c
     color: themeTokens.text,
     marginTop: tokens.spacing.lg,
     marginBottom: tokens.spacing.md,
+  },
+  sectionLabel: {
+    ...typography.meta,
+    color: themeTokens.subtext,
+    marginBottom: tokens.spacing.xs,
+    paddingHorizontal: tokens.spacing.xs,
   },
 
   actionCard: {

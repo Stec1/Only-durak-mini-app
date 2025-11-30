@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Pressable, View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import ODCard from '@/components/ODCard';
 import GlassCard from '@/components/GlassCard';
 import { DECK_KEYS, type CardKey, type DeckMap, type Rank, type Suit } from '@/utils/deck';
@@ -21,7 +22,7 @@ type DraftPreviewCard = { key: CardKey; rank: Rank; suit: Suit; uri: string };
 function MiniDeckCard({ card }: { card: DraftPreviewCard }) {
   return (
     <View style={styles.miniCardWrapper}>
-      <ODCard rank={card.rank} suit={card.suit} photoUri={card.uri} width={50} />
+      <ODCard rank={card.rank} suit={card.suit} photoUri={card.uri} width={64} />
     </View>
   );
 }
@@ -31,18 +32,29 @@ export function DeckConstructorPreviewCard() {
   const [draftDeck, setDraftDeck] = useState<DeckMap>(() => createEmptyDeck());
   const maxCards = DECK_KEYS.length;
 
-  useEffect(() => {
-    (async () => {
-      const raw = await AsyncStorage.getItem(DRAFT_DECK_KEY);
-      if (!raw) return;
-      try {
-        const parsed = JSON.parse(raw) as DeckMap;
-        setDraftDeck({ ...createEmptyDeck(), ...parsed });
-      } catch {
-        // ignore parse errors
-      }
-    })();
+  const readDraft = useCallback(async () => {
+    const raw = await AsyncStorage.getItem(DRAFT_DECK_KEY);
+    if (!raw) {
+      setDraftDeck(createEmptyDeck());
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw) as DeckMap;
+      setDraftDeck({ ...createEmptyDeck(), ...parsed });
+    } catch {
+      setDraftDeck(createEmptyDeck());
+    }
   }, []);
+
+  useEffect(() => {
+    readDraft();
+  }, [readDraft]);
+
+  useFocusEffect(
+    useCallback(() => {
+      readDraft();
+    }, [readDraft])
+  );
 
   const filledCards = useMemo(() => (
     Object.entries(draftDeck)
@@ -57,11 +69,6 @@ export function DeckConstructorPreviewCard() {
   return (
     <Pressable onPress={handlePress} style={{ width: '100%' }}>
       <GlassCard style={styles.card}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Open Deck Constructor</Text>
-          <Text style={styles.chevron}>›</Text>
-        </View>
-
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -72,12 +79,17 @@ export function DeckConstructorPreviewCard() {
               <MiniDeckCard key={card.key} card={card} />
             ))
           ) : (
-            <Text style={styles.placeholder}>No draft deck yet. Start building your first deck!</Text>
+            Array.from({ length: 6 }).map((_, idx) => (
+              <View key={idx} style={styles.placeholderCard}>
+                <Text style={styles.placeholderPlus}>＋</Text>
+              </View>
+            ))
           )}
         </ScrollView>
 
         <View style={styles.footer}>
           <Text style={styles.progress}>{filledCards.length} / {maxCards} cards selected</Text>
+          <Text style={styles.chevron}>›</Text>
         </View>
       </GlassCard>
     </Pressable>
@@ -89,36 +101,32 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: tokens.spacing.md,
     gap: tokens.spacing.sm,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.16)',
+    borderColor: 'rgba(255,255,255,0.18)',
     marginBottom: tokens.spacing.sm,
     overflow: 'hidden',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  title: {
-    color: '#E6E6E6',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  chevron: {
-    color: '#E6E6E6',
-    fontSize: 20,
-    fontWeight: '700',
+    borderRadius: 20,
   },
   previewRow: {
     alignItems: 'center',
     paddingVertical: tokens.spacing.xs,
+    gap: tokens.spacing.xs,
   },
-  placeholder: {
+  placeholderCard: {
+    width: 64,
+    height: 88,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderPlus: {
     color: '#9CA3AF',
-    fontSize: 14,
-    paddingVertical: tokens.spacing.xs,
-    paddingHorizontal: tokens.spacing.xs,
+    fontSize: 22,
+    fontWeight: '700',
   },
   miniCardWrapper: {
     marginRight: tokens.spacing.xs,
@@ -127,11 +135,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: tokens.spacing.xs,
   },
   progress: {
     color: '#C8CCD2',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  chevron: {
+    color: '#E6E6E6',
+    fontSize: 18,
+    fontWeight: '800',
   },
 });
 
