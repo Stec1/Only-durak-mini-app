@@ -20,17 +20,19 @@ export default function HeaderSection({ displayName, subtitle, avatarUri, onAvat
   const theme = useTokens();
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+    <View style={styles.container}>
       <View style={styles.settingsWrapper}>
-        <TouchableOpacity style={[styles.settingsButton, { borderColor: theme.border }]} onPress={onSettingsPress} activeOpacity={0.75}>
+        <TouchableOpacity
+          style={[styles.settingsButton, { backgroundColor: theme.cardBg, borderColor: theme.border }]}
+          onPress={onSettingsPress}
+          activeOpacity={0.75}
+        >
           <Settings color={theme.text} size={22} strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
 
       <LinearGradient colors={['#4DB2FF', '#9B5CFF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.avatarGlow}>
-        <View style={[styles.avatarShell, { backgroundColor: theme.bg }]}>
-          <ProfileAvatar uri={avatarUri} onImagePicked={onAvatarChange} size={112} />
-        </View>
+        <ProfileAvatar uri={avatarUri} onImagePicked={onAvatarChange} size={112} />
       </LinearGradient>
 
       <Text style={[styles.name, { color: theme.text }]}>{displayName}</Text>
@@ -41,17 +43,8 @@ export default function HeaderSection({ displayName, subtitle, avatarUri, onAvat
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 30,
-    paddingVertical: tokens.spacing.xl,
-    paddingHorizontal: tokens.spacing.lg,
     alignItems: 'center',
     gap: tokens.spacing.sm,
-    borderWidth: 1,
-    shadowColor: '#6AD7FF',
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 4,
   },
   settingsWrapper: {
     width: '100%',
@@ -63,32 +56,24 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
     borderWidth: 1,
-    shadowColor: '#3CF2FF',
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 14,
+    shadowColor: '#4DB2FF',
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
   },
   avatarGlow: {
-    width: 136,
-    height: 136,
-    borderRadius: 68,
+    width: 128,
+    height: 128,
+    borderRadius: 64,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 6,
+    padding: 4,
     shadowColor: '#7BF0FF',
-    shadowOpacity: 0.45,
-    shadowRadius: 26,
-    shadowOffset: { width: 0, height: 12 },
-  },
-  avatarShell: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 62,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 6,
+    shadowOpacity: 0.35,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 10 },
   },
   name: {
     fontSize: 28,
