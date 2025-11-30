@@ -11,26 +11,27 @@ type GlassCardProps = {
 
 export default function GlassCard({ children, style, padding = tokens.spacing.lg }: GlassCardProps) {
   const themeTokens = useTokens();
+  const isWeb = Platform.OS === 'web';
 
   return (
     <View
       style={[
         {
-          backgroundColor: themeTokens.cardBg,
+          backgroundColor: themeTokens.isDark ? themeTokens.cardBg : themeTokens.surfaceElevated,
           borderRadius: themeTokens.cardRadius,
           borderWidth: 1,
-          borderColor: themeTokens.border,
+          borderColor: themeTokens.isDark ? themeTokens.border : themeTokens.borderSubtle,
           shadowColor: themeTokens.cardShadow.shadowColor,
           shadowOpacity: themeTokens.cardShadow.shadowOpacity,
           shadowRadius: themeTokens.cardShadow.shadowRadius,
           shadowOffset: themeTokens.cardShadow.shadowOffset,
           elevation: themeTokens.cardShadow.elevation,
           padding,
-          ...Platform.select({
-            web: {
-              backdropFilter: 'blur(10px)',
-            },
-          }),
+          ...(themeTokens.isDark && isWeb
+            ? {
+                backdropFilter: 'blur(10px)',
+              }
+            : null),
         },
         style,
       ]}

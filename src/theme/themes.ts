@@ -2,12 +2,17 @@ export type ThemeId = 'dark' | 'white' | 'softpink';
 
 export type ThemeTokens = {
   bg: string;
+  surface: string;
+  surfaceElevated: string;
   cardBg: string;
   textPrimary: string;
   textSecondary: string;
   accent: string;
+  accentBlue: string;
+  accentNeon: string;
   accentSoft: string;
   border: string;
+  borderSubtle: string;
   tabBarBg: string;
   tabBarActive: string;
   tabBarInactive: string;
@@ -29,12 +34,17 @@ export type ThemeValue = ThemeTokens & {
 
 const darkTokens: ThemeTokens = {
   bg: '#0E0F12',
+  surface: '#0E0F12',
+  surfaceElevated: '#1A1D22',
   cardBg: '#1A1D22',
   textPrimary: '#EDEFF2',
   textSecondary: '#A2A8B3',
   accent: '#42C4FF',
+  accentBlue: '#42C4FF',
+  accentNeon: '#42C4FF',
   accentSoft: '#163244',
   border: 'rgba(255,255,255,0.08)',
+  borderSubtle: 'rgba(255,255,255,0.08)',
   tabBarBg: '#0E0F12',
   tabBarActive: '#42C4FF',
   tabBarInactive: '#9BA0A6',
@@ -50,22 +60,27 @@ const darkTokens: ThemeTokens = {
 };
 
 const whiteTokens: ThemeTokens = {
-  bg: '#F7F7FB',
+  bg: '#F5F7FA',
+  surface: '#F5F7FA',
+  surfaceElevated: '#FFFFFF',
   cardBg: '#FFFFFF',
-  textPrimary: '#050608',
-  textSecondary: '#4A4A55',
-  accent: '#42C4FF',
+  textPrimary: '#111111',
+  textSecondary: '#5B6472',
+  accent: '#00A8FF',
+  accentBlue: '#00A8FF',
+  accentNeon: '#4C5CFF',
   accentSoft: '#E5F6FF',
   border: '#E1E3EE',
+  borderSubtle: 'rgba(0,0,0,0.06)',
   tabBarBg: '#FFFFFF',
-  tabBarActive: '#42C4FF',
+  tabBarActive: '#00A8FF',
   tabBarInactive: '#A0A3B1',
   statusBarStyle: 'dark-content',
   cardShadow: {
-    shadowColor: '#000000',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
+    shadowColor: 'rgba(15, 23, 42, 0.06)',
+    shadowOpacity: 1,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
     elevation: 6,
   },
   cardRadius: 20,
@@ -73,12 +88,17 @@ const whiteTokens: ThemeTokens = {
 
 const softPinkTokens: ThemeTokens = {
   bg: '#0B0B10',
+  surface: '#0B0B10',
+  surfaceElevated: '#251320',
   cardBg: '#251320',
   textPrimary: '#F9F4F8',
   textSecondary: '#F5A3C4',
   accent: '#FF4B8B',
+  accentBlue: '#FF4B8B',
+  accentNeon: '#FF4B8B',
   accentSoft: '#FF9BC4',
   border: '#3B2233',
+  borderSubtle: '#3B2233',
   tabBarBg: '#0B0B10',
   tabBarActive: '#FF4B8B',
   tabBarInactive: '#6B6B7A',

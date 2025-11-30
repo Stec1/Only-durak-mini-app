@@ -9,28 +9,75 @@ import { tokens } from '@/src/theme/tokens';
 
 export default function JokerSlots() {
   const theme = useTokens();
+  const isDark = theme.isDark;
 
   return (
     <View style={styles.wrapper}>
       <Text style={[styles.title, { color: theme.text }]}>Joker Slots</Text>
       <View style={styles.row}>
-        <View style={[styles.slot, { borderColor: theme.border }]}>
+        <View
+          style={[
+            styles.slot,
+            isDark
+              ? styles.slotGlass
+              : {
+                  backgroundColor: theme.surfaceElevated,
+                  borderWidth: 1,
+                  borderColor: theme.borderSubtle,
+                  shadowColor: theme.cardShadow.shadowColor,
+                  shadowOpacity: theme.cardShadow.shadowOpacity,
+                  shadowRadius: theme.cardShadow.shadowRadius,
+                  shadowOffset: theme.cardShadow.shadowOffset,
+                  elevation: theme.cardShadow.elevation,
+                },
+          ]}
+        >
           <JokerTile
             label="Black Joker"
             storageKey="joker_black_uri"
             iconComponent={
-              <View style={[styles.icon, { backgroundColor: 'rgba(0,0,0,0.25)' }]}>
+              <View
+                style={[
+                  styles.icon,
+                  isDark
+                    ? { backgroundColor: 'rgba(0,0,0,0.25)', borderColor: 'rgba(0, 228, 255, 0.25)' }
+                    : { backgroundColor: theme.accentSoft, borderColor: theme.borderSubtle },
+                ]}
+              >
                 <SuitSpade size={36} color={theme.accent} />
               </View>
             }
           />
         </View>
-        <View style={[styles.slot, { borderColor: theme.border }]}>
+        <View
+          style={[
+            styles.slot,
+            isDark
+              ? styles.slotGlass
+              : {
+                  backgroundColor: theme.surfaceElevated,
+                  borderWidth: 1,
+                  borderColor: theme.borderSubtle,
+                  shadowColor: theme.cardShadow.shadowColor,
+                  shadowOpacity: theme.cardShadow.shadowOpacity,
+                  shadowRadius: theme.cardShadow.shadowRadius,
+                  shadowOffset: theme.cardShadow.shadowOffset,
+                  elevation: theme.cardShadow.elevation,
+                },
+          ]}
+        >
           <JokerTile
             label="Red Joker"
             storageKey="joker_red_uri"
             iconComponent={
-              <View style={[styles.icon, { backgroundColor: 'rgba(0,0,0,0.25)' }]}>
+              <View
+                style={[
+                  styles.icon,
+                  isDark
+                    ? { backgroundColor: 'rgba(0,0,0,0.25)', borderColor: 'rgba(0, 228, 255, 0.25)' }
+                    : { backgroundColor: theme.accentSoft, borderColor: theme.borderSubtle },
+                ]}
+              >
                 <SuitHeart size={36} color={theme.accent} />
               </View>
             }
@@ -55,9 +102,11 @@ const styles = StyleSheet.create({
   },
   slot: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 24,
     padding: tokens.spacing.sm,
+  },
+  slotGlass: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
     borderColor: 'rgba(0, 228, 255, 0.25)',
     // @ts-expect-error web-only blur support
@@ -75,6 +124,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: tokens.spacing.xs,
     borderWidth: 1,
-    borderColor: 'rgba(0, 228, 255, 0.25)',
   },
 });
