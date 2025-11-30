@@ -2,14 +2,36 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, Alert, Dimensions, Modal, TextInput } from 'react-native';
 import { Stack, router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ODCard from '@/components/ODCard';
-import { RANKS, SUITS, cardKey, type Rank, type Suit } from '@/utils/deck';
+import { RANKS, SUITS, DECK_KEYS, cardKey, loadDeck, type DeckMap, type Rank, type Suit } from '@/utils/deck';
 import { isModel, getUser } from '@/store/user';
 import { saveDeck as saveNewDeck } from '@/storage/decks';
 import { Deck, CardKey } from '@/types/deck';
 import GlassCard from '@/components/GlassCard';
 import { pickImageNoCrop } from '@/src/utils/imagePicker';
-import { ensureDraftDeckPersistence, loadDraftDeckFromStorage, useDraftDeckActions, useDraftDeckStore } from '@/src/state/deckDraftStore';
+
+const DRAFT_DECK_STORAGE_KEY = 'DECK_CONSTRUCTOR_DRAFT_V1';
+
+const createEmptyDeck = (): DeckMap => Object.fromEntries(DECK_KEYS.map(k => [k, null])) as DeckMap;
+
+async function loadDraftDeck(): Promise<DeckMap | null> {
+  const raw = await AsyncStorage.getItem(DRAFT_DECK_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as DeckMap;
+  } catch {
+    return null;
+  }
+}
+
+async function saveDraftDeck(cards: DeckMap): Promise<void> {
+  await AsyncStorage.setItem(DRAFT_DECK_STORAGE_KEY, JSON.stringify(cards));
+}
+
+async function clearDraftDeck(): Promise<void> {
+  await AsyncStorage.removeItem(DRAFT_DECK_STORAGE_KEY);
+}
 
 function DeckSlot({ suit, rank, uri, onPick }: { suit: Suit; rank: Rank; uri?: string | null; onPick: () => void }) {
   const screenWidth = Dimensions.get('window').width;
@@ -21,23 +43,12 @@ function DeckSlot({ suit, rank, uri, onPick }: { suit: Suit; rank: Rank; uri?: s
 }
 
 export default function DeckConstructorScreen() {
+  const [deck, setDeck] = useState<DeckMap>(createEmptyDeck());
   const [ready, setReady] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [deckName, setDeckName] = useState('My Custom Deck');
+  const [backUri, setBackUri] = useState<string>('');
   const [refresh, setRefresh] = useState(false);
-
-  const deck = useDraftDeckStore((state) => state.deck);
-  const deckName = useDraftDeckStore((state) => state.deckName);
-  const backUri = useDraftDeckStore((state) => state.backUri);
-  const actions = useDraftDeckActions();
-
-  useEffect(() => {
-    // DEBUG NOTE:
-    // Storage hydration previously chained into store subscriptions and produced the "Maximum update
-    // depth exceeded" crash on startup. Persistence hooks are temporarily no-ops in the store to
-    // keep the constructor screen stable while we keep the in-memory draft experience alive.
-    ensureDraftDeckPersistence();
-    loadDraftDeckFromStorage();
-  }, []);
 
   useEffect(() => {
     if (!isModel()) {
@@ -47,13 +58,32 @@ export default function DeckConstructorScreen() {
     }
     (async () => {
       await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const draft = await loadDraftDeck();
+      if (draft) {
+        setDeck(draft);
+      } else {
+        const d = await loadDeck();
+        setDeck(d);
+      }
       setReady(true);
     })();
   }, []);
 
   useEffect(() => {
-    setRefresh((prev) => !prev);
+    setRefresh(prev => !prev);
   }, [deck]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const hasContent = Object.values(deck).some((uri) => uri);
+    (async () => {
+      if (hasContent) {
+        await saveDraftDeck(deck);
+      } else {
+        await clearDraftDeck();
+      }
+    })();
+  }, [deck, ready]);
 
   const data = RANKS.flatMap((r) => SUITS.map((s) => ({ rank: r as Rank, suit: s as Suit, key: cardKey(r as Rank, s as Suit) })));
 
@@ -63,12 +93,12 @@ export default function DeckConstructorScreen() {
       const uri = await pickImageNoCrop();
       if (uri) {
         const k = cardKey(rank, suit);
-        actions.setCardImage(k, uri);
+        setDeck(prev => ({ ...prev, [k]: uri }));
       }
     } catch (e) {
       console.warn('Image pick cancelled:', e);
     }
-  }, [actions]);
+  }, []);
 
   const onSave = useCallback(() => {
     if (!isModel()) return;
@@ -84,12 +114,12 @@ export default function DeckConstructorScreen() {
     try {
       const uri = await pickImageNoCrop();
       if (uri) {
-        actions.setBackUri(uri);
+        setBackUri(uri);
       }
     } catch (e) {
       console.warn('Back image pick cancelled:', e);
     }
-  }, [actions]);
+  }, []);
 
   const confirmSave = useCallback(async () => {
     if (!isModel()) return;
@@ -122,7 +152,9 @@ export default function DeckConstructorScreen() {
 
     try {
       await saveNewDeck(user.username, newDeck);
-      actions.resetDraft();
+      await clearDraftDeck();
+      setDeck(createEmptyDeck());
+      setBackUri('');
       setShowSaveModal(false);
       Alert.alert('Success', 'Your deck has been saved!', [
         { text: 'OK', onPress: () => router.back() }
@@ -131,7 +163,7 @@ export default function DeckConstructorScreen() {
       console.error('Save deck error:', err);
       Alert.alert('Error', 'Failed to save deck. Please try again.');
     }
-  }, [deckName, backUri, deck, actions]);
+  }, [deckName, backUri, deck]);
 
   if (!isModel()) return null;
 
@@ -188,7 +220,7 @@ export default function DeckConstructorScreen() {
               <TextInput
                 style={styles.modalInput}
                 value={deckName}
-                onChangeText={actions.setDeckName}
+                onChangeText={setDeckName}
                 placeholder="Enter deck name"
                 placeholderTextColor="#666"
               />
