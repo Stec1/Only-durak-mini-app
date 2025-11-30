@@ -19,6 +19,8 @@ type Props = {
   photoUri?: string | null; // optional user photo for the face
 };
 
+// This is the canonical playing card component used across the app.
+// It will also be used for the deck constructor preview on the profile screen.
 function ODCard({ rank, suit, width, photoUri }: Props) {
   const palette = SuitPalette[suit];
   return (
