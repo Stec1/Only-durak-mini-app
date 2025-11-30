@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Settings } from 'lucide-react-native';
 
 import ProfileAvatar from '@/components/ProfileAvatar';
@@ -31,9 +30,9 @@ export default function HeaderSection({ displayName, subtitle, avatarUri, onAvat
         </TouchableOpacity>
       </View>
 
-      <LinearGradient colors={['#4DB2FF', '#9B5CFF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.avatarGlow}>
-        <ProfileAvatar uri={avatarUri} onImagePicked={onAvatarChange} size={112} />
-      </LinearGradient>
+      <View style={styles.avatarWrapper}>
+        <ProfileAvatar uri={avatarUri} onImagePicked={onAvatarChange} size={148} />
+      </View>
 
       <Text style={[styles.name, { color: theme.text }]}>{displayName}</Text>
       <Capsule label={subtitle} />
@@ -63,17 +62,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 3,
   },
-  avatarGlow: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
+  avatarWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 4,
-    shadowColor: '#7BF0FF',
-    shadowOpacity: 0.35,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 10 },
   },
   name: {
     fontSize: 28,
