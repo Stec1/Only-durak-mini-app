@@ -25,7 +25,7 @@ import GamesStatsPanel from '@/src/components/profile/GamesStatsPanel';
 import { mockEarnings, mockSummary, mockRecent, mockJokers } from '@/src/data/profileMocks';
 import ThemePickerSheet from '@/src/components/ThemePickerSheet';
 import DeckConstructorPreviewCard from '@/components/DeckConstructorPreviewCard';
-import { useDraftDeck, useDraftDeckActions, useDraftDeckPersistence } from '@/src/state/deckDraftStore';
+import { ensureDraftDeckPersistence, loadDraftDeckFromStorage, useDraftDeck, useDraftDeckActions } from '@/src/state/deckDraftStore';
 
 
 
@@ -52,7 +52,11 @@ export default function ProfileScreen() {
   const [showThemePicker, setShowThemePicker] = useState(false);
   const { totalSelected: draftCount } = useDraftDeck();
   const draftActions = useDraftDeckActions();
-  useDraftDeckPersistence();
+
+  useEffect(() => {
+    ensureDraftDeckPersistence();
+    loadDraftDeckFromStorage();
+  }, []);
 
   useEffect(() => {
     if (!user) {
