@@ -7,12 +7,16 @@ export type ThemeTokens = {
   cardBg: string;
   textPrimary: string;
   textSecondary: string;
+  textOnAccent: string;
   accent: string;
   accentBlue: string;
   accentNeon: string;
   accentSoft: string;
   border: string;
   borderSubtle: string;
+  chipBackground: string;
+  progressTrack: string;
+  surfaceGlass: string;
   tabBarBg: string;
   tabBarActive: string;
   tabBarInactive: string;
@@ -39,12 +43,16 @@ const darkTokens: ThemeTokens = {
   cardBg: '#1A1D22',
   textPrimary: '#EDEFF2',
   textSecondary: '#A2A8B3',
+  textOnAccent: '#FFFFFF',
   accent: '#42C4FF',
   accentBlue: '#42C4FF',
   accentNeon: '#42C4FF',
   accentSoft: '#163244',
   border: 'rgba(255,255,255,0.08)',
   borderSubtle: 'rgba(255,255,255,0.08)',
+  chipBackground: 'rgba(255,255,255,0.08)',
+  progressTrack: 'rgba(255,255,255,0.16)',
+  surfaceGlass: 'rgba(26, 29, 34, 0.78)',
   tabBarBg: '#0E0F12',
   tabBarActive: '#42C4FF',
   tabBarInactive: '#9BA0A6',
@@ -66,12 +74,16 @@ const whiteTokens: ThemeTokens = {
   cardBg: '#FFFFFF',
   textPrimary: '#111111',
   textSecondary: '#5B6472',
+  textOnAccent: '#FFFFFF',
   accent: '#00A8FF',
   accentBlue: '#00A8FF',
   accentNeon: '#4C5CFF',
   accentSoft: '#E5F6FF',
   border: '#E1E3EE',
   borderSubtle: 'rgba(0,0,0,0.06)',
+  chipBackground: '#E6EAF0',
+  progressTrack: '#D6DCE6',
+  surfaceGlass: 'rgba(255, 255, 255, 0.9)',
   tabBarBg: '#FFFFFF',
   tabBarActive: '#00A8FF',
   tabBarInactive: '#A0A3B1',
@@ -93,12 +105,16 @@ const softPinkTokens: ThemeTokens = {
   cardBg: '#251320',
   textPrimary: '#F9F4F8',
   textSecondary: '#F5A3C4',
+  textOnAccent: '#FFFFFF',
   accent: '#FF4B8B',
   accentBlue: '#FF4B8B',
   accentNeon: '#FF4B8B',
   accentSoft: '#FF9BC4',
   border: '#3B2233',
   borderSubtle: '#3B2233',
+  chipBackground: '#3B2233',
+  progressTrack: '#4B3041',
+  surfaceGlass: 'rgba(37, 19, 32, 0.82)',
   tabBarBg: '#0B0B10',
   tabBarActive: '#FF4B8B',
   tabBarInactive: '#6B6B7A',
