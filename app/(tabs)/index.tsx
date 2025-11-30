@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { StyleSheet, Text, View, ScrollView, Platform, TouchableOpacity, Modal, Pressable, FlatList, Alert, TextInput } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { Users, LogOut, Settings, ChevronRight, RotateCcw, Trophy, TrendingUp, Flame, Lightbulb } from 'lucide-react-native';
@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/auth';
 import { useTokens } from '@/src/contexts/theme';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { loadDeck, saveDeck, DECK_KEYS, type DeckMap } from '@/utils/deck';
 import { getDecks, saveDeck as updateDeck, deleteDeck } from '@/storage/decks';
 import { Deck } from '@/types/deck';
@@ -59,16 +60,31 @@ export default function ProfileScreen() {
     }
   }, [router, user]);
 
+  const loadDecks = useCallback(async () => {
+    const loadedDecks = await getDecks(userIdForDeck);
+    setDecks(loadedDecks);
+  }, [userIdForDeck]);
+
+  const refreshDeckData = useCallback(async () => {
+    if (role !== 'model') return;
+
+    const loaded = await loadDeck();
+    setDeck(loaded);
+    const filled = Object.values(loaded).filter((uri) => uri !== null).length;
+    setDeckProgress({ filled, total: DECK_KEYS.length });
+
+    await loadDecks();
+  }, [role, loadDecks]);
+
   useEffect(() => {
-    if (role === 'model') {
-      loadDeck().then((loaded) => {
-        setDeck(loaded);
-        const filled = Object.values(loaded).filter((uri) => uri !== null).length;
-        setDeckProgress({ filled, total: DECK_KEYS.length });
-      });
-      getDecks(userIdForDeck).then(setDecks);
-    }
-  }, [role, userIdForDeck]);
+    refreshDeckData();
+  }, [refreshDeckData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshDeckData();
+    }, [refreshDeckData])
+  );
 
   const handleLogout = async () => {
     setShowSettingsSheet(false);
@@ -97,11 +113,6 @@ export default function ProfileScreen() {
         },
       ]
     );
-  };
-
-  const loadDecks = async () => {
-    const loadedDecks = await getDecks(userIdForDeck);
-    setDecks(loadedDecks);
   };
 
   const handleBadgePress = (section: 'games' | 'earnings' | 'jokers') => {
