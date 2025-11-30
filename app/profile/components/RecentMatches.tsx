@@ -13,6 +13,23 @@ interface RecentMatchesProps {
 
 export default function RecentMatches({ matches }: RecentMatchesProps) {
   const theme = useTokens();
+  const isDark = theme.isDark;
+
+  const cardStyle = [
+    styles.cardBase,
+    isDark
+      ? styles.cardGlass
+      : {
+          backgroundColor: theme.surfaceElevated,
+          borderWidth: 1,
+          borderColor: theme.borderSubtle,
+          shadowColor: theme.cardShadow.shadowColor,
+          shadowOpacity: theme.cardShadow.shadowOpacity,
+          shadowRadius: theme.cardShadow.shadowRadius,
+          shadowOffset: theme.cardShadow.shadowOffset,
+          elevation: theme.cardShadow.elevation,
+        },
+  ];
 
   return (
     <View style={styles.wrapper}>
@@ -23,7 +40,7 @@ export default function RecentMatches({ matches }: RecentMatchesProps) {
         </TouchableOpacity>
       </View>
 
-      <GlassCard style={styles.card} padding={tokens.spacing.lg}>
+      <GlassCard style={cardStyle} padding={tokens.spacing.lg}>
         {matches.map((match, index) => (
           <View key={match.id}>
             <View style={styles.matchRow}>
@@ -68,9 +85,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
   },
-  card: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+  cardBase: {
     borderRadius: 24,
+  },
+  cardGlass: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
     borderColor: 'rgba(0, 228, 255, 0.25)',
     // @ts-expect-error web-only blur support

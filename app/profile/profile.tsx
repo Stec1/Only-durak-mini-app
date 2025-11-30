@@ -1,16 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Alert,
-  Animated,
-  Dimensions,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Animated, Dimensions, Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -20,7 +9,7 @@ import { LogOut, Moon, Sun } from 'lucide-react-native';
 import { useTheme, useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
 import { useAuth } from '@/contexts/auth';
-import { loadDeck, saveDeck, DECK_KEYS, type DeckMap } from '@/utils/deck';
+import { loadDeck, DECK_KEYS, type DeckMap } from '@/utils/deck';
 import { getDecks } from '@/storage/decks';
 import type { Deck } from '@/types/deck';
 import { mockRecent } from '@/src/data/profileMocks';
@@ -33,6 +22,7 @@ import JokerSlots from './components/JokerSlots';
 import RecentMatches from './components/RecentMatches';
 
 const DRAFT_DECK_KEY = 'DECK_CONSTRUCTOR_DRAFT_V1';
+const PANEL_TOP_OFFSET = 24;
 
 function withAlpha(color: string, alpha: number) {
   if (color.startsWith('#')) {
@@ -134,27 +124,6 @@ export default function ProfileScreen() {
     }, [refreshDeckData])
   );
 
-  const handleResetDeck = () => {
-    Alert.alert(
-      'Reset Deck',
-      'Are you sure you want to reset your custom deck? This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: async () => {
-            const emptyDeck = Object.fromEntries(DECK_KEYS.map((k) => [k, null])) as DeckMap;
-            await saveDeck(emptyDeck);
-            setDeck(emptyDeck);
-            setDeckProgress({ filled: 0, total: DECK_KEYS.length });
-            Alert.alert('Success', 'Your deck has been reset.');
-          },
-        },
-      ]
-    );
-  };
-
   const glassSpacing = useMemo(
     () => ({ paddingTop: insets.top + tokens.spacing.xl, paddingBottom: insets.bottom + tokens.spacing['2xl'] }),
     [insets.bottom, insets.top]
@@ -227,7 +196,6 @@ export default function ProfileScreen() {
             deckProgress={deckProgress}
             onOpenDeck={(deckId) => router.push(`/decks/${deckId}` as const)}
             onDecksChanged={loadDecks}
-            onResetDeck={handleResetDeck}
           />
         )}
 
@@ -266,6 +234,8 @@ export default function ProfileScreen() {
                 borderColor: withAlpha(themeTokens.border, 0.8),
                 shadowColor: themeTokens.cardShadow.shadowColor,
                 transform: [{ translateX: drawerTranslate }],
+                top: insets.top + PANEL_TOP_OFFSET,
+                right: tokens.spacing.lg,
               },
             ]}
           >
@@ -326,12 +296,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    position: 'relative',
   },
   drawer: {
+    position: 'absolute',
     borderTopLeftRadius: 20,
     borderBottomLeftRadius: 20,
     borderWidth: 1,
-    alignSelf: 'flex-start',
     paddingHorizontal: tokens.spacing.lg,
     paddingVertical: tokens.spacing.lg,
     paddingTop: 40,

@@ -57,21 +57,30 @@ export const useTheme = () => {
 };
 
 export const useTokens = () => {
-  const { tokens } = useThemeCtx();
+  const { tokens, themeId } = useThemeCtx();
+
+  const isDark = themeId !== 'white';
 
   return {
     bg: tokens.bg,
+    surface: tokens.surface,
+    surfaceElevated: tokens.surfaceElevated,
     cardBg: tokens.cardBg,
     text: tokens.textPrimary,
     subtext: tokens.textSecondary,
     accent: tokens.accent,
+    accentBlue: tokens.accentBlue,
+    accentNeon: tokens.accentNeon,
     accentSoft: tokens.accentSoft,
     border: tokens.border,
+    borderSubtle: tokens.borderSubtle,
     tabBarBg: tokens.tabBarBg,
     tabBarActive: tokens.tabBarActive,
     tabBarInactive: tokens.tabBarInactive,
     statusBarStyle: tokens.statusBarStyle,
     cardShadow: tokens.cardShadow,
     cardRadius: tokens.cardRadius,
+    isDark,
+    themeName: themeId,
   };
 };

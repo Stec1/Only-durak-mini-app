@@ -23,7 +23,6 @@ interface MyDeckPreviewProps {
   deckProgress: { filled: number; total: number };
   onOpenDeck: (deckId: string) => void;
   onDecksChanged?: () => Promise<void> | void;
-  onResetDeck: () => void;
 }
 const applyAlpha = (color: string, alpha: number) => {
   if (color.startsWith('#')) {
@@ -49,8 +48,9 @@ const applyAlpha = (color: string, alpha: number) => {
   return color;
 };
 
-export default function MyDeckPreview({ decks, deckProgress: _deckProgress, onOpenDeck, onDecksChanged, onResetDeck }: MyDeckPreviewProps) {
+export default function MyDeckPreview({ decks, deckProgress: _deckProgress, onOpenDeck, onDecksChanged }: MyDeckPreviewProps) {
   const theme = useTokens();
+  const isDark = theme.isDark;
   const hasDecks = decks.length > 0;
   const [menuDeck, setMenuDeck] = useState<Deck | null>(null);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -112,9 +112,6 @@ export default function MyDeckPreview({ decks, deckProgress: _deckProgress, onOp
         <View>
           <Text style={[styles.title, { color: theme.text }]}>My Deck</Text>
         </View>
-        <TouchableOpacity activeOpacity={0.85} onPress={onResetDeck}>
-          <Text style={[styles.reset, { color: theme.accent }]}>Reset</Text>
-        </TouchableOpacity>
       </View>
 
       {hasDecks ? (
@@ -126,7 +123,18 @@ export default function MyDeckPreview({ decks, deckProgress: _deckProgress, onOp
           {decks.map((deck) => (
             <View
               key={deck.id}
-              style={[styles.deckCard, { backgroundColor: applyAlpha(theme.cardBg, 0.9), borderColor: theme.border }]}
+              style={[
+                styles.deckCard,
+                {
+                  backgroundColor: isDark ? applyAlpha(theme.cardBg, 0.9) : theme.surfaceElevated,
+                  borderColor: isDark ? theme.border : theme.borderSubtle,
+                  shadowColor: isDark ? '#3CF2FF' : theme.cardShadow.shadowColor,
+                  shadowOpacity: isDark ? 0.22 : theme.cardShadow.shadowOpacity,
+                  shadowRadius: isDark ? 12 : theme.cardShadow.shadowRadius,
+                  shadowOffset: isDark ? { width: 0, height: 8 } : theme.cardShadow.shadowOffset,
+                  elevation: isDark ? 5 : theme.cardShadow.elevation,
+                },
+              ]}
             >
               <TouchableOpacity activeOpacity={0.85} onPress={() => onOpenDeck(deck.id)}>
                 <ImageBackground
@@ -134,7 +142,12 @@ export default function MyDeckPreview({ decks, deckProgress: _deckProgress, onOp
                   style={styles.deckImage}
                   imageStyle={styles.deckImageRadius}
                 >
-                  <View style={[styles.deckOverlay, { backgroundColor: applyAlpha(theme.bg, 0.35) }]} />
+                  <View
+                    style={[
+                      styles.deckOverlay,
+                      { backgroundColor: isDark ? applyAlpha(theme.bg, 0.35) : applyAlpha(theme.bg, 0.08) },
+                    ]}
+                  />
                   <Text style={[styles.deckName, { color: theme.text }]}>{deck.name}</Text>
                 </ImageBackground>
               </TouchableOpacity>
@@ -150,7 +163,20 @@ export default function MyDeckPreview({ decks, deckProgress: _deckProgress, onOp
           ))}
         </ScrollView>
       ) : (
-        <View style={[styles.empty, { borderColor: theme.border, backgroundColor: applyAlpha(theme.cardBg, 0.9) }]}>
+        <View
+          style={[
+            styles.empty,
+            {
+              borderColor: isDark ? theme.border : theme.borderSubtle,
+              backgroundColor: isDark ? applyAlpha(theme.cardBg, 0.9) : theme.surfaceElevated,
+              shadowColor: isDark ? '#3CF2FF' : theme.cardShadow.shadowColor,
+              shadowOpacity: isDark ? 0.18 : theme.cardShadow.shadowOpacity,
+              shadowRadius: isDark ? 10 : theme.cardShadow.shadowRadius,
+              shadowOffset: isDark ? { width: 0, height: 6 } : theme.cardShadow.shadowOffset,
+              elevation: isDark ? 4 : theme.cardShadow.elevation,
+            },
+          ]}
+        >
           <Text style={[styles.emptyTitle, { color: theme.text }]}>No decks yet</Text>
           <Text style={[styles.emptySubtitle, { color: theme.subtext }]}>Create a deck to preview it here.</Text>
         </View>
@@ -166,14 +192,18 @@ export default function MyDeckPreview({ decks, deckProgress: _deckProgress, onOp
                 {
                   top: Math.max(menuPosition.y - 10, 10),
                   left: Math.max(menuPosition.x - 190, tokens.spacing.md),
-                  backgroundColor: applyAlpha(theme.cardBg, 0.92),
-                  borderColor: applyAlpha(theme.border, 0.8),
+                  backgroundColor: isDark ? applyAlpha(theme.cardBg, 0.92) : theme.surfaceElevated,
+                  borderColor: isDark ? applyAlpha(theme.border, 0.8) : theme.borderSubtle,
                   shadowColor: theme.cardShadow.shadowColor,
+                  shadowOpacity: isDark ? theme.cardShadow.shadowOpacity : theme.cardShadow.shadowOpacity,
+                  shadowRadius: theme.cardShadow.shadowRadius,
+                  shadowOffset: theme.cardShadow.shadowOffset,
+                  elevation: theme.cardShadow.elevation,
                 },
               ]}
             >
               <TouchableOpacity
-                style={[styles.menuItem, { borderColor: applyAlpha(theme.border, 0.7) }]}
+                style={[styles.menuItem, { borderColor: isDark ? applyAlpha(theme.border, 0.7) : theme.borderSubtle }]}
                 onPress={() => handleRenamePress(menuDeck)}
               >
                 <Text style={[styles.menuText, { color: theme.text }]}>Rename Deck</Text>
@@ -196,8 +226,8 @@ export default function MyDeckPreview({ decks, deckProgress: _deckProgress, onOp
             style={[
               styles.renameCard,
               {
-                backgroundColor: applyAlpha(theme.cardBg, 0.95),
-                borderColor: applyAlpha(theme.border, 0.9),
+                backgroundColor: isDark ? applyAlpha(theme.cardBg, 0.95) : theme.surfaceElevated,
+                borderColor: isDark ? applyAlpha(theme.border, 0.9) : theme.borderSubtle,
                 shadowColor: theme.cardShadow.shadowColor,
               },
             ]}
@@ -239,10 +269,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: tokens.spacing.sm,
-  },
-  reset: {
-    fontSize: 14,
-    fontWeight: '700',
   },
   deckList: {
     paddingVertical: tokens.spacing.sm,

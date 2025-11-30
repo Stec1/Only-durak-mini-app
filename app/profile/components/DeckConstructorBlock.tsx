@@ -14,6 +14,7 @@ interface DeckConstructorBlockProps {
 
 export default function DeckConstructorBlock({ deckMap, totalSlots, onOpenConstructor }: DeckConstructorBlockProps) {
   const theme = useTokens();
+  const isDark = theme.isDark;
 
   const filledUris = useMemo(() => {
     if (!deckMap) return [] as string[];
@@ -25,7 +26,24 @@ export default function DeckConstructorBlock({ deckMap, totalSlots, onOpenConstr
   return (
     <View style={styles.wrapper}>
       <Text style={[styles.title, { color: theme.text }]}>Deck Constructor</Text>
-      <GlassCard style={styles.card} padding={tokens.spacing.lg}>
+      <GlassCard
+        style={[
+          styles.cardBase,
+          isDark
+            ? styles.cardGlass
+            : {
+                backgroundColor: theme.surfaceElevated,
+                borderWidth: 1,
+                borderColor: theme.borderSubtle,
+                shadowColor: theme.cardShadow.shadowColor,
+                shadowOpacity: theme.cardShadow.shadowOpacity,
+                shadowRadius: theme.cardShadow.shadowRadius,
+                shadowOffset: theme.cardShadow.shadowOffset,
+                elevation: theme.cardShadow.elevation,
+              },
+        ]}
+        padding={tokens.spacing.lg}
+      >
         <View style={styles.headerRow}>
           <Text style={[styles.progress, { color: theme.text }]}>
             {filledCount} / {totalSlots} cards selected
@@ -38,12 +56,29 @@ export default function DeckConstructorBlock({ deckMap, totalSlots, onOpenConstr
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.miniRow}>
           {filledUris.length > 0 ? (
             filledUris.map((uri, idx) => (
-              <View key={uri + idx} style={[styles.miniCard, { borderColor: theme.border }]}>
+              <View
+                key={uri + idx}
+                style={[
+                  styles.miniCard,
+                  {
+                    borderColor: isDark ? theme.border : theme.borderSubtle,
+                    backgroundColor: isDark ? 'rgba(0,0,0,0.35)' : theme.surface,
+                  },
+                ]}
+              >
                 <Image source={{ uri }} style={styles.miniImage} />
               </View>
             ))
           ) : (
-            <View style={[styles.placeholder, { borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.placeholder,
+                {
+                  borderColor: isDark ? theme.border : theme.borderSubtle,
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : theme.surface,
+                },
+              ]}
+            >
               <Text style={[styles.placeholderText, { color: theme.subtext }]}>Add cards to see them here.</Text>
             </View>
           )}
@@ -61,9 +96,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
   },
-  card: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+  cardBase: {
     borderRadius: 24,
+  },
+  cardGlass: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
     borderColor: 'rgba(0, 228, 255, 0.25)',
     // @ts-expect-error web-only blur support
