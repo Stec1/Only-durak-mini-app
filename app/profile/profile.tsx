@@ -1,9 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Animated,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LogOut, Moon, Sun } from 'lucide-react-native';
 
 import { useTheme, useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
@@ -22,6 +34,30 @@ import RecentMatches from './components/RecentMatches';
 
 const DRAFT_DECK_KEY = 'DECK_CONSTRUCTOR_DRAFT_V1';
 
+function withAlpha(color: string, alpha: number) {
+  if (color.startsWith('#')) {
+    const normalized = color.replace('#', '');
+    const bigint = parseInt(normalized.length === 3 ? normalized.repeat(2) : normalized, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  if (color.startsWith('rgb')) {
+    const parts = color
+      .replace(/rgba?\(/, '')
+      .replace(')', '')
+      .split(',')
+      .map((part) => Number(part.trim()))
+      .slice(0, 3);
+    const [r, g, b] = parts;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  return color;
+}
+
 async function loadDraftDeck(): Promise<DeckMap | null> {
   const raw = await AsyncStorage.getItem(DRAFT_DECK_KEY);
   if (!raw) return null;
@@ -39,6 +75,8 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const themeTokens = useTokens();
   const scrollRef = useRef<ScrollView>(null);
+  const settingsAnim = useRef(new Animated.Value(0)).current;
+  const panelWidth = useMemo(() => Math.min(Dimensions.get('window').width * 0.82, 360), []);
 
   const isModel = role === 'model';
   const displayName = user?.name || 'Player';
@@ -54,6 +92,11 @@ export default function ProfileScreen() {
 
   const handleSettingsPress = () => {
     setSettingsVisible(true);
+    Animated.timing(settingsAnim, {
+      toValue: 1,
+      duration: 260,
+      useNativeDriver: true,
+    }).start();
   };
 
   useEffect(() => {
@@ -117,20 +160,45 @@ export default function ProfileScreen() {
     [insets.bottom, insets.top]
   );
 
+  const drawerTranslate = useMemo(
+    () =>
+      settingsAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [panelWidth, 0],
+      }),
+    [panelWidth, settingsAnim]
+  );
+
+  const overlayOpacity = useMemo(
+    () =>
+      settingsAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 1],
+      }),
+    [settingsAnim]
+  );
+
   const handleToggleTheme = useCallback(() => {
-    const nextTheme = themeName === 'dark' ? 'light' : 'dark';
+    const nextTheme = themeName === 'dark' ? 'white' : 'dark';
     setTheme(nextTheme);
-    setSettingsVisible(false);
   }, [setTheme, themeName]);
 
+  const closeSettings = useCallback(() => {
+    Animated.timing(settingsAnim, {
+      toValue: 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) {
+        setSettingsVisible(false);
+      }
+    });
+  }, [settingsAnim]);
+
   const handleLogout = useCallback(() => {
-    setSettingsVisible(false);
+    closeSettings();
     logout();
-  }, [logout]);
-
-  const closeSettings = () => setSettingsVisible(false);
-
-  const themeToggleLabel = themeName === 'dark' ? 'Switch to Light theme' : 'Switch to Dark theme';
+  }, [closeSettings, logout]);
 
   return (
     <View style={[styles.container, { backgroundColor: themeTokens.bg }]}>
@@ -158,6 +226,7 @@ export default function ProfileScreen() {
             decks={decks}
             deckProgress={deckProgress}
             onOpenDeck={(deckId) => router.push(`/decks/${deckId}` as const)}
+            onOpenDeckSettings={() => router.push('/deck-constructor')}
             onResetDeck={handleResetDeck}
           />
         )}
@@ -175,20 +244,64 @@ export default function ProfileScreen() {
         <RecentMatches matches={mockRecent} />
       </ScrollView>
 
-      <Modal transparent visible={settingsVisible} animationType="slide" onRequestClose={closeSettings}>
-        <View style={styles.sheetOverlay}>
-          <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={closeSettings} />
-          <View style={[styles.sheet, { backgroundColor: themeTokens.cardBg, borderColor: themeTokens.border }]}>
-            <TouchableOpacity style={styles.sheetItem} activeOpacity={0.75} onPress={handleToggleTheme}>
-              <Text style={[styles.sheetText, { color: themeTokens.text }]}>{themeToggleLabel}</Text>
+      <Modal transparent visible={settingsVisible} animationType="fade" onRequestClose={closeSettings}>
+        <View style={styles.drawerOverlay}>
+          <Animated.View
+            pointerEvents={settingsVisible ? 'auto' : 'none'}
+            style={[
+              StyleSheet.absoluteFillObject,
+              styles.backdrop,
+              { backgroundColor: withAlpha(themeTokens.bg, 0.55), opacity: overlayOpacity },
+            ]}
+          >
+            <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={closeSettings} />
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.drawer,
+              {
+                width: panelWidth,
+                backgroundColor: withAlpha(themeTokens.cardBg, 0.9),
+                borderColor: withAlpha(themeTokens.border, 0.8),
+                shadowColor: themeTokens.cardShadow.shadowColor,
+                transform: [{ translateX: drawerTranslate }],
+              },
+            ]}
+          >
+            <View style={styles.drawerHeader}>
+              <Text style={[styles.drawerTitle, { color: themeTokens.text }]}>Settings</Text>
+              <TouchableOpacity onPress={closeSettings} hitSlop={8}>
+                <View style={[styles.iconPill, { backgroundColor: withAlpha(themeTokens.border, 0.4) }]}>
+                  <Text style={{ color: themeTokens.text, fontSize: 16 }}>×</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.settingRow, { borderColor: themeTokens.border }]}> 
+              <View style={styles.settingLabelRow}>
+                <Sun color={themeTokens.text} size={18} />
+                <Text style={[styles.settingLabel, { color: themeTokens.text }]}>Theme</Text>
+              </View>
+              <View style={styles.switchWrap}>
+                <Sun color={themeTokens.subtext} size={16} />
+                <Switch
+                  value={themeName !== 'dark'}
+                  onValueChange={handleToggleTheme}
+                  trackColor={{ false: withAlpha(themeTokens.border, 0.7), true: withAlpha(themeTokens.accent, 0.3) }}
+                  thumbColor={themeTokens.cardBg}
+                />
+                <Moon color={themeTokens.subtext} size={16} />
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.settingRow} activeOpacity={0.8} onPress={handleLogout}>
+              <View style={styles.settingLabelRow}>
+                <LogOut color={themeTokens.accent} size={18} />
+                <Text style={[styles.settingLabel, { color: themeTokens.accent }]}>Log out</Text>
+              </View>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.sheetItem} activeOpacity={0.75} onPress={handleLogout}>
-              <Text style={[styles.sheetText, styles.destructive, { color: themeTokens.text }]}>Log out</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.sheetItem} activeOpacity={0.75} onPress={closeSettings}>
-              <Text style={[styles.sheetText, { color: themeTokens.subtext }]}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+          </Animated.View>
         </View>
       </Modal>
     </View>
@@ -206,30 +319,58 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.spacing.lg,
     gap: tokens.spacing.lg,
   },
-  sheetOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
+  backdrop: {
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
-  backdrop: {
+  drawerOverlay: {
     flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
-  sheet: {
+  drawer: {
+    height: '100%',
     borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: tokens.spacing.lg,
-    paddingVertical: tokens.spacing.md,
+    borderBottomLeftRadius: 20,
     borderWidth: 1,
-    gap: tokens.spacing.xs,
+    paddingHorizontal: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.lg,
+    gap: tokens.spacing.lg,
   },
-  sheetItem: {
-    paddingVertical: tokens.spacing.md,
+  drawerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  sheetText: {
+  drawerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  iconPill: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: tokens.spacing.sm,
+    borderBottomWidth: 1,
+  },
+  settingLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.sm,
+  },
+  settingLabel: {
     fontSize: 16,
     fontWeight: '700',
   },
-  destructive: {
-    color: '#FF7B7B',
+  switchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.xs,
   },
 });
