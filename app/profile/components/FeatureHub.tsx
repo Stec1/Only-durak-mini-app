@@ -1,8 +1,8 @@
 import React from 'react';
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
+
 import iconGamesGamepad3D from '../../../assets/images/icon_games_gamepad_3d.png';
 import iconMarketplaceCrate3D from '../../../assets/images/icon_marketplace_crate_3d.png';
 
@@ -11,9 +11,13 @@ interface FeatureHubProps {
   onOpenGames: () => void;
 }
 
-export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHubProps) {
+const FeatureHub: React.FC<FeatureHubProps> = ({
+  onOpenMarketplace,
+  onOpenGames,
+}) => {
   const theme = useTokens();
   const isDark = theme.isDark;
+
   const cards = [
     {
       key: 'marketplace',
@@ -31,43 +35,36 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHu
 
   return (
     <View>
-      <Text style={[styles.title, { color: theme.text }]}>Feature Hub</Text>
+      <Text
+        style={[
+          styles.title,
+          { color: isDark ? tokens.text.primary : tokens.text.primary },
+        ]}
+      >
+        Feature Hub
+      </Text>
+
       <View style={styles.grid}>
         {cards.map((card) => (
           <TouchableOpacity
             key={card.key}
-            activeOpacity={0.8}
-            style={[
-              styles.cardBase,
-              isDark
-                ? styles.cardGlass
-                : {
-                    backgroundColor: theme.surfaceElevated,
-                    borderWidth: 1,
-                    borderColor: theme.borderSubtle,
-                    shadowColor: theme.cardShadow.shadowColor,
-                    shadowOpacity: theme.cardShadow.shadowOpacity,
-                    shadowRadius: theme.cardShadow.shadowRadius,
-                    shadowOffset: theme.cardShadow.shadowOffset,
-                    elevation: theme.cardShadow.elevation,
-                  },
-            ]}
             onPress={card.onPress}
+            activeOpacity={0.9}
+            style={styles.card}
           >
-            <Text style={[styles.cardTitle, { color: theme.text }]}>{card.title}</Text>
-            <View style={[styles.imageContainer, { borderRadius: tokens.borderRadius['2xl'] }]}>
-              <Image
-                source={card.image}
-                style={[styles.image, { borderRadius: tokens.borderRadius['2xl'] }]}
-                resizeMode="cover"
-              />
-            </View>
+            <Image
+              source={card.image}
+              style={styles.image}
+              resizeMode="cover"
+            />
           </TouchableOpacity>
         ))}
       </View>
     </View>
   );
-}
+};
+
+export default FeatureHub;
 
 const styles = StyleSheet.create({
   title: {
@@ -79,31 +76,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: tokens.spacing.md,
   },
-  cardBase: {
+  card: {
     flex: 1,
     minHeight: 152,
-    padding: tokens.spacing.lg,
     borderRadius: tokens.borderRadius['2xl'],
-    gap: tokens.spacing.sm,
-  },
-  cardGlass: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    // @ts-expect-error web-only blur support
-    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(22px)' } : null),
-    borderWidth: 1,
-    borderColor: 'rgba(0, 228, 255, 0.25)',
-    shadowColor: '#3CF2FF',
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 5,
-  },
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-  },
-  imageContainer: {
-    flex: 1,
     overflow: 'hidden',
   },
   image: {
