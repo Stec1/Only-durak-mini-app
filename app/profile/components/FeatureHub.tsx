@@ -1,10 +1,10 @@
 import React from 'react';
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import iconGamesGamepad3D from '@/assets/images/icon_games_gamepad_3d.png';
+import iconMarketplaceCrate3D from '@/assets/images/icon_marketplace_crate_3d.png';
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
-import iconMarketplaceCrate3D from '../../../assets/images/icon_marketplace_crate_3d.png';
-import iconGamesGamepad3D from '../../../assets/images/icon_games_gamepad_3d.png';
 
 interface FeatureHubProps {
   onOpenMarketplace: () => void;
@@ -34,9 +34,9 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHu
         {cards.map((card) => (
           <TouchableOpacity
             key={card.key}
-            activeOpacity={0.8}
+            activeOpacity={0.9}
             style={[
-              styles.cardBase,
+              styles.featureCard,
               isDark
                 ? styles.cardGlass
                 : {
@@ -52,13 +52,15 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHu
             ]}
             onPress={card.onPress}
           >
-            <Image source={card.image} style={styles.featureImage} resizeMode="cover" />
+            <Image source={card.image} style={styles.featureCardImage} />
           </TouchableOpacity>
         ))}
       </View>
     </View>
   );
 }
+
+const featureCardRadius = tokens.borderRadius?.['2xl'] ?? 24;
 
 const styles = StyleSheet.create({
   title: {
@@ -70,10 +72,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: tokens.spacing.md,
   },
-  cardBase: {
+  featureCard: {
     flex: 1,
     minHeight: 152,
-    borderRadius: tokens.borderRadius['2xl'],
+    padding: 0,
+    borderRadius: featureCardRadius,
     overflow: 'hidden',
   },
   cardGlass: {
@@ -88,9 +91,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 5,
   },
-  featureImage: {
+  featureCardImage: {
     width: '100%',
     height: '100%',
-    borderRadius: tokens.borderRadius['2xl'],
+    borderRadius: featureCardRadius,
+    resizeMode: 'cover',
   },
 });
