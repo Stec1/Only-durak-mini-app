@@ -3,8 +3,8 @@ import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react
 
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
-import iconGamesGamepad3D from '../../../assets/images/icon_games_gamepad_3d.png';
 import iconMarketplaceCrate3D from '../../../assets/images/icon_marketplace_crate_3d.png';
+import iconGamesGamepad3D from '../../../assets/images/icon_games_gamepad_3d.png';
 
 interface FeatureHubProps {
   onOpenMarketplace: () => void;
