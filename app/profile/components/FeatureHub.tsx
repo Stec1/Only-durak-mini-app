@@ -1,8 +1,7 @@
 import React from 'react';
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Gamepad2, ShoppingBag } from 'lucide-react-native';
 
-import iconGamesGamepad3D from '@/assets/images/icon_games_gamepad_3d.png';
-import iconMarketplaceCrate3D from '@/assets/images/icon_marketplace_crate_3d.png';
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
 
@@ -17,12 +16,16 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHu
   const cards = [
     {
       key: 'marketplace',
-      image: iconMarketplaceCrate3D,
+      title: 'Marketplace',
+      subtitle: 'Trade decks & Jokers',
+      icon: <ShoppingBag color={theme.accent} size={24} strokeWidth={2.5} />,
       onPress: onOpenMarketplace,
     },
     {
       key: 'games',
-      image: iconGamesGamepad3D,
+      title: 'Games',
+      subtitle: 'Host or join matches',
+      icon: <Gamepad2 color={theme.accent} size={24} strokeWidth={2.5} />,
       onPress: onOpenGames,
     },
   ];
@@ -34,9 +37,9 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHu
         {cards.map((card) => (
           <TouchableOpacity
             key={card.key}
-            activeOpacity={0.9}
+            activeOpacity={0.8}
             style={[
-              styles.featureCard,
+              styles.cardBase,
               isDark
                 ? styles.cardGlass
                 : {
@@ -52,15 +55,24 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHu
             ]}
             onPress={card.onPress}
           >
-            <Image source={card.image} style={styles.featureCardImage} />
+            <View
+              style={[
+                styles.iconWrap,
+                isDark
+                  ? styles.iconWrapDark
+                  : { backgroundColor: theme.accentSoft, borderColor: theme.borderSubtle },
+              ]}
+            >
+              {card.icon}
+            </View>
+            <Text style={[styles.cardTitle, { color: theme.text }]}>{card.title}</Text>
+            <Text style={[styles.cardSubtitle, { color: theme.subtext }]}>{card.subtitle}</Text>
           </TouchableOpacity>
         ))}
       </View>
     </View>
   );
 }
-
-const featureCardRadius = tokens.borderRadius?.['2xl'] ?? 24;
 
 const styles = StyleSheet.create({
   title: {
@@ -72,12 +84,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: tokens.spacing.md,
   },
-  featureCard: {
+  cardBase: {
     flex: 1,
     minHeight: 152,
-    padding: 0,
-    borderRadius: featureCardRadius,
-    overflow: 'hidden',
+    padding: tokens.spacing.lg,
+    borderRadius: 24,
+    gap: tokens.spacing.sm,
   },
   cardGlass: {
     backgroundColor: 'rgba(255,255,255,0.06)',
@@ -91,10 +103,24 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 5,
   },
-  featureCardImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: featureCardRadius,
-    resizeMode: 'cover',
+  iconWrap: {
+    width: 46,
+    height: 46,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  iconWrapDark: {
+    backgroundColor: 'rgba(0, 228, 255, 0.1)',
+    borderColor: 'rgba(0, 228, 255, 0.4)',
+  },
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
