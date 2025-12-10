@@ -3,8 +3,8 @@ import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react
 
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
-import iconGamesGamepad3D from '@/assets/images/icon_games_gamepad_3d.png';
-import iconMarketplaceCrate3D from '@/assets/images/icon_marketplace_crate_3d.png';
+import iconGamesGamepad3D from '../../../assets/images/icon_games_gamepad_3d.png';
+import iconMarketplaceCrate3D from '../../../assets/images/icon_marketplace_crate_3d.png';
 
 interface FeatureHubProps {
   onOpenMarketplace: () => void;
@@ -52,7 +52,7 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHu
             ]}
             onPress={card.onPress}
           >
-            <Image source={card.image} style={styles.cardImage} resizeMode="cover" />
+            <Image source={card.image} style={styles.featureImage} resizeMode="cover" />
           </TouchableOpacity>
         ))}
       </View>
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   cardBase: {
     flex: 1,
     minHeight: 152,
-    borderRadius: 24,
+    borderRadius: tokens.borderRadius['2xl'],
     overflow: 'hidden',
   },
   cardGlass: {
@@ -88,9 +88,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 5,
   },
-  cardImage: {
+  featureImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 24,
+    borderRadius: tokens.borderRadius['2xl'],
   },
 });
