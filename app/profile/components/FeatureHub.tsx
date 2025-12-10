@@ -1,9 +1,10 @@
 import React from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Gamepad2, ShoppingBag } from 'lucide-react-native';
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
+import iconGamesGamepad3D from '../../../assets/images/icon_games_gamepad_3d.png';
+import iconMarketplaceCrate3D from '../../../assets/images/icon_marketplace_crate_3d.png';
 
 interface FeatureHubProps {
   onOpenMarketplace: () => void;
@@ -17,15 +18,13 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHu
     {
       key: 'marketplace',
       title: 'Marketplace',
-      subtitle: 'Trade decks & Jokers',
-      icon: <ShoppingBag color={theme.accent} size={24} strokeWidth={2.5} />,
+      image: iconMarketplaceCrate3D,
       onPress: onOpenMarketplace,
     },
     {
       key: 'games',
-      title: 'Games',
-      subtitle: 'Host or join matches',
-      icon: <Gamepad2 color={theme.accent} size={24} strokeWidth={2.5} />,
+      title: 'Game',
+      image: iconGamesGamepad3D,
       onPress: onOpenGames,
     },
   ];
@@ -55,18 +54,14 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHu
             ]}
             onPress={card.onPress}
           >
-            <View
-              style={[
-                styles.iconWrap,
-                isDark
-                  ? styles.iconWrapDark
-                  : { backgroundColor: theme.accentSoft, borderColor: theme.borderSubtle },
-              ]}
-            >
-              {card.icon}
-            </View>
             <Text style={[styles.cardTitle, { color: theme.text }]}>{card.title}</Text>
-            <Text style={[styles.cardSubtitle, { color: theme.subtext }]}>{card.subtitle}</Text>
+            <View style={[styles.imageContainer, { borderRadius: tokens.borderRadius['2xl'] }]}>
+              <Image
+                source={card.image}
+                style={[styles.image, { borderRadius: tokens.borderRadius['2xl'] }]}
+                resizeMode="cover"
+              />
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -88,7 +83,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 152,
     padding: tokens.spacing.lg,
-    borderRadius: 24,
+    borderRadius: tokens.borderRadius['2xl'],
     gap: tokens.spacing.sm,
   },
   cardGlass: {
@@ -103,24 +98,16 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 5,
   },
-  iconWrap: {
-    width: 46,
-    height: 46,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
-  iconWrapDark: {
-    backgroundColor: 'rgba(0, 228, 255, 0.1)',
-    borderColor: 'rgba(0, 228, 255, 0.4)',
-  },
   cardTitle: {
     fontSize: 17,
     fontWeight: '800',
   },
-  cardSubtitle: {
-    fontSize: 14,
-    fontWeight: '600',
+  imageContainer: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
 });
