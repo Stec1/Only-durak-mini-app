@@ -1,8 +1,15 @@
 import React from 'react';
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
+import {
+  Image,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
+
 import iconGamesGamepad3D from '../../../assets/images/icon_games_gamepad_3d.png';
 import iconMarketplaceCrate3D from '../../../assets/images/icon_marketplace_crate_3d.png';
 
@@ -11,9 +18,13 @@ interface FeatureHubProps {
   onOpenGames: () => void;
 }
 
-export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHubProps) {
+export default function FeatureHub({
+  onOpenMarketplace,
+  onOpenGames,
+}: FeatureHubProps) {
   const theme = useTokens();
   const isDark = theme.isDark;
+
   const cards = [
     {
       key: 'marketplace',
@@ -29,30 +40,38 @@ export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHu
 
   return (
     <View>
-      <Text style={[styles.title, { color: theme.text }]}>Feature Hub</Text>
+      <Text
+        style={[
+          styles.title,
+          { color: isDark ? theme.textPrimary : theme.textPrimary },
+        ]}
+      >
+        Feature Hub
+      </Text>
+
       <View style={styles.grid}>
         {cards.map((card) => (
           <TouchableOpacity
             key={card.key}
-            activeOpacity={0.8}
+            activeOpacity={0.9}
+            onPress={card.onPress}
             style={[
               styles.cardBase,
-              isDark
-                ? styles.cardGlass
-                : {
-                    backgroundColor: theme.surfaceElevated,
-                    borderWidth: 1,
-                    borderColor: theme.borderSubtle,
-                    shadowColor: theme.cardShadow.shadowColor,
-                    shadowOpacity: theme.cardShadow.shadowOpacity,
-                    shadowRadius: theme.cardShadow.shadowRadius,
-                    shadowOffset: theme.cardShadow.shadowOffset,
-                    elevation: theme.cardShadow.elevation,
-                  },
+              {
+                backgroundColor: isDark
+                  ? theme.surfaceElevated
+                  : theme.surface,
+                borderColor: theme.accentSoft,
+              },
             ]}
-            onPress={card.onPress}
           >
-            <Image source={card.image} style={styles.cardImage} resizeMode="cover" />
+            <View style={styles.cardGlass}>
+              <Image
+                source={card.image}
+                style={styles.cardImage}
+                resizeMode="cover"
+              />
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -75,9 +94,12 @@ const styles = StyleSheet.create({
     minHeight: 152,
     padding: tokens.spacing.lg,
     borderRadius: tokens.borderRadius['2xl'],
-    gap: tokens.spacing.sm,
+    borderWidth: 1,
   },
   cardGlass: {
+    flex: 1,
+    overflow: 'hidden',
+    borderRadius: tokens.borderRadius['2xl'],
     backgroundColor: 'rgba(255,255,255,0.06)',
     // @ts-expect-error web-only blur support
     ...(Platform.OS === 'web' ? { backdropFilter: 'blur(22px)' } : null),
@@ -92,6 +114,5 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: '100%',
-    borderRadius: tokens.borderRadius['2xl'],
   },
 });
