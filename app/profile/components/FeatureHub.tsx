@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  Image,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
 
@@ -40,14 +34,7 @@ export default function FeatureHub({
 
   return (
     <View>
-      <Text
-        style={[
-          styles.title,
-          { color: isDark ? theme.textPrimary : theme.textPrimary },
-        ]}
-      >
-        Feature Hub
-      </Text>
+      <Text style={[styles.title, { color: theme.text }]}>Feature Hub</Text>
 
       <View style={styles.grid}>
         {cards.map((card) => (
@@ -58,20 +45,21 @@ export default function FeatureHub({
             style={[
               styles.cardBase,
               {
-                backgroundColor: isDark
-                  ? theme.surfaceElevated
-                  : theme.surface,
+                backgroundColor: isDark ? theme.surfaceElevated : theme.surface,
                 borderColor: theme.accentSoft,
+                shadowColor: theme.cardShadow.shadowColor,
+                shadowOpacity: theme.cardShadow.shadowOpacity,
+                shadowRadius: theme.cardShadow.shadowRadius,
+                shadowOffset: theme.cardShadow.shadowOffset,
+                elevation: theme.cardShadow.elevation,
               },
             ]}
           >
-            <View style={styles.cardGlass}>
-              <Image
-                source={card.image}
-                style={styles.cardImage}
-                resizeMode="cover"
-              />
-            </View>
+            <Image
+              source={card.image}
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
           </TouchableOpacity>
         ))}
       </View>
@@ -81,9 +69,10 @@ export default function FeatureHub({
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 18,
-    fontWeight: '800',
-    marginBottom: tokens.spacing.sm,
+    fontFamily: tokens.fontFamily.heading,
+    fontSize: tokens.fontSize.lg,
+    lineHeight: tokens.lineHeight.lg,
+    marginBottom: tokens.spacing.lg,
   },
   grid: {
     flexDirection: 'row',
@@ -92,24 +81,13 @@ const styles = StyleSheet.create({
   cardBase: {
     flex: 1,
     minHeight: 152,
-    padding: tokens.spacing.lg,
     borderRadius: tokens.borderRadius['2xl'],
     borderWidth: 1,
-  },
-  cardGlass: {
-    flex: 1,
     overflow: 'hidden',
-    borderRadius: tokens.borderRadius['2xl'],
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    // @ts-expect-error web-only blur support
-    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(22px)' } : null),
-    borderWidth: 1,
-    borderColor: 'rgba(0, 228, 255, 0.25)',
-    shadowColor: '#3CF2FF',
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 5,
+    // Web-only blur / glass can be re-added later if needed
+    ...(Platform.OS === 'web'
+      ? { backdropFilter: 'blur(22px)' as any }
+      : null),
   },
   cardImage: {
     width: '100%',
