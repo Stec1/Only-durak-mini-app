@@ -3,15 +3,15 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 
-const marketplaceImage = require('../../../assets/images/icon.png');
-const gamepadImage = require('../../../assets/images/icon.png');
+const marketplaceImage = require('../../../assets/images/icon_marketplace_crate_3d.png');
+const gamepadImage = require('../../../assets/images/icon_games_gamepad_3d.png');
 
 interface FeatureHubProps {
   onOpenMarketplace: () => void;
   onOpenGames: () => void;
 }
 
-const CARD_HEIGHT = 160; // можна підкрутити під твій смак
+const CARD_HEIGHT = 160;
 
 const FeatureHub: React.FC<FeatureHubProps> = ({
   onOpenMarketplace,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     height: CARD_HEIGHT,
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: '#050608', // щоб не було мерехтіння при завантаженні
+    backgroundColor: '#050608',
   },
   cardImage: {
     width: '100%',
