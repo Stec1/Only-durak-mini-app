@@ -1,3 +1,5 @@
+// app/profile/components/FeatureHub.tsx
+
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 
@@ -8,6 +10,8 @@ interface FeatureHubProps {
   onOpenMarketplace: () => void;
   onOpenGames: () => void;
 }
+
+const CARD_HEIGHT = 160; // можна підкрутити під твій смак
 
 const FeatureHub: React.FC<FeatureHubProps> = ({
   onOpenMarketplace,
@@ -49,7 +53,6 @@ const FeatureHub: React.FC<FeatureHubProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginTop: 24,
-    paddingHorizontal: 16,
   },
   heading: {
     fontSize: 20,
@@ -60,16 +63,17 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16,
   },
   card: {
-    flex: 1,
+    width: '48%',
+    height: CARD_HEIGHT,
     borderRadius: 24,
     overflow: 'hidden',
+    backgroundColor: '#050608', // щоб не було мерехтіння при завантаженні
   },
   cardImage: {
     width: '100%',
-    aspectRatio: 1,
+    height: '100%',
   },
 });
 
