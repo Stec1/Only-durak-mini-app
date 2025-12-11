@@ -1,10 +1,10 @@
 import React from 'react';
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 
 import { useTokens } from '@/src/contexts/theme';
 import { tokens } from '@/src/theme/tokens';
-import iconGamesGamepad3D from '../../../assets/images/icon_games_gamepad_3d.png';
 import iconMarketplaceCrate3D from '../../../assets/images/icon_marketplace_crate_3d.png';
+import iconGamesGamepad3D from '../../../assets/images/icon_games_gamepad_3d.png';
 
 interface FeatureHubProps {
   onOpenMarketplace: () => void;
@@ -13,57 +13,34 @@ interface FeatureHubProps {
 
 export default function FeatureHub({ onOpenMarketplace, onOpenGames }: FeatureHubProps) {
   const theme = useTokens();
-  const isDark = theme.isDark;
-  const cards = [
-    {
-      key: 'marketplace',
-      title: 'Marketplace',
-      image: iconMarketplaceCrate3D,
-      onPress: onOpenMarketplace,
-    },
-    {
-      key: 'games',
-      title: 'Game',
-      image: iconGamesGamepad3D,
-      onPress: onOpenGames,
-    },
-  ];
 
   return (
     <View>
       <Text style={[styles.title, { color: theme.text }]}>Feature Hub</Text>
-      <View style={styles.grid}>
-        {cards.map((card) => (
-          <TouchableOpacity
-            key={card.key}
-            activeOpacity={0.8}
-            style={[
-              styles.cardBase,
-              isDark
-                ? styles.cardGlass
-                : {
-                    backgroundColor: theme.surfaceElevated,
-                    borderWidth: 1,
-                    borderColor: theme.borderSubtle,
-                    shadowColor: theme.cardShadow.shadowColor,
-                    shadowOpacity: theme.cardShadow.shadowOpacity,
-                    shadowRadius: theme.cardShadow.shadowRadius,
-                    shadowOffset: theme.cardShadow.shadowOffset,
-                    elevation: theme.cardShadow.elevation,
-                  },
-            ]}
-            onPress={card.onPress}
-          >
-            <Text style={[styles.cardTitle, { color: theme.text }]}>{card.title}</Text>
-            <View style={[styles.imageContainer, { borderRadius: tokens.borderRadius['2xl'] }]}>
-              <Image
-                source={card.image}
-                style={[styles.image, { borderRadius: tokens.borderRadius['2xl'] }]}
-                resizeMode="cover"
-              />
-            </View>
-          </TouchableOpacity>
-        ))}
+      <View style={styles.cardsRow}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={onOpenMarketplace}
+          accessibilityRole="button"
+        >
+          <Image
+            source={iconMarketplaceCrate3D}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.card}
+          onPress={onOpenGames}
+          accessibilityRole="button"
+        >
+          <Image
+            source={iconGamesGamepad3D}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -75,38 +52,18 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginBottom: tokens.spacing.sm,
   },
-  grid: {
+  cardsRow: {
     flexDirection: 'row',
-    gap: tokens.spacing.md,
+    gap: 16,
+    marginTop: 16,
   },
-  cardBase: {
+  card: {
     flex: 1,
-    minHeight: 152,
-    padding: tokens.spacing.lg,
-    borderRadius: tokens.borderRadius['2xl'],
-    gap: tokens.spacing.sm,
-  },
-  cardGlass: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    // @ts-expect-error web-only blur support
-    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(22px)' } : null),
-    borderWidth: 1,
-    borderColor: 'rgba(0, 228, 255, 0.25)',
-    shadowColor: '#3CF2FF',
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 5,
-  },
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-  },
-  imageContainer: {
-    flex: 1,
+    aspectRatio: 1,
+    borderRadius: 24,
     overflow: 'hidden',
   },
-  image: {
+  cardImage: {
     width: '100%',
     height: '100%',
   },
