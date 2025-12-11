@@ -3,8 +3,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 
-const marketplaceImage = require('../../../assets/images/icon_marketplace_crate_3d.png');
-const gamepadImage = require('../../../assets/images/icon_games_gamepad_3d.png');
+const marketplaceImage = require('../../../assets/images/icon.png');
+const gamepadImage = require('../../../assets/images/icon.png');
 
 interface FeatureHubProps {
   onOpenMarketplace: () => void;
